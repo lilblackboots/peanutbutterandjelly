@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ApplyBot</title>
+  <style>
+    @font-face {
+      font-family: 'Relative Pro';
+      src: url('RelativePro-font/RelativePro-Book.otf') format('opentype');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Relative Pro';
+      src: url('RelativePro-font/RelativePro-Italic.otf') format('opentype');
+      font-weight: 400; font-style: italic; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Relative Pro';
+      src: url('RelativePro-font/RelativePro-Medium.otf') format('opentype');
+      font-weight: 500; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Relative Pro';
+      src: url('RelativePro-font/RelativePro-MediumItalic.otf') format('opentype');
+      font-weight: 500; font-style: italic; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Relative Pro';
+      src: url('RelativePro-font/RelativePro-Bold.otf') format('opentype');
+      font-weight: 700; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Relative Pro';
+      src: url('RelativePro-font/RelativePro-BoldItalic.otf') format('opentype');
+      font-weight: 700; font-style: italic; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Relative Pro';
+      src: url('RelativePro-font/RelativePro-Black.otf') format('opentype');
+      font-weight: 900; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Relative Pro';
+      src: url('RelativePro-font/RelativePro-BlackItalic.otf') format('opentype');
+      font-weight: 900; font-style: italic; font-display: swap;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #ffffff;
+      --surface:    #ffffff;
+      --surface-2:  #f6f8fc;
+      --border:     #dce1ee;
+      --border-h:   #b4bdd4;
+      --navy:       #0d1e5e;
+      --navy-mid:   #1e3380;
+      --teal:       #11BDBD;
+      --teal-soft:  rgba(17,189,189,.07);
+      --teal-ring:  rgba(17,189,189,.18);
+      --text-2:     #7585A8;
+      --text-3:     #7585A8;
+      --radius:     16px;
+      --radius-sm:  16px;
+      --shadow-sm:  0 1px 4px rgba(13,30,94,.06), 0 1px 2px rgba(13,30,94,.04);
+      --shadow:     0 2px 16px rgba(13,30,94,.08), 0 1px 4px rgba(13,30,94,.05);
+    }
+
+    html, body {
+      min-height: 100%;
+      font-family: 'Relative Pro', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--navy);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Views ── */
+    .view {
+      display: none;
+      min-height: 100vh;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 24px;
+    }
+    .view.active { display: flex; animation: fadeUp .4s cubic-bezier(.22,.68,0,1.15); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+
+    /* ── Logo ── */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: none; border: none; padding: 0;
+      cursor: pointer; text-decoration: none;
+      transition: opacity .15s;
+    }
+    .logo:hover { opacity: .75; }
+    .logo img { width: 34px; height: 34px; border-radius: 0; display: block; }
+    .logo-name { font-size: 19px; font-weight: 900; color: var(--navy); letter-spacing: -.3px; }
+
+
+    /* ══════════════════════════════════
+       VIEW 1 — UPLOAD
+    ══════════════════════════════════ */
+    /* Upload view: column layout with top nav */
+    #viewUpload {
+      padding: 0;
+      justify-content: flex-start;
+      align-items: stretch;
+    }
+    .upload-topnav {
+      padding: 20px 40px;
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .upload-wrap {
+      flex: 1;
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 24px 72px;
+    }
+
+    .headline {
+      font-size: 50px;
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -2px;
+      color: var(--navy);
+      margin-bottom: 16px;
+    }
+    .headline em {
+      font-style: normal;
+      background: linear-gradient(95deg, #11BDBD 0%, #6DD8E8 52%, #60A5FA 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      color: transparent;
+    }
+
+    .subline {
+      font-size: 17px;
+      color: var(--text-2);
+      line-height: 1.55;
+      max-width: 480px;
+      margin-bottom: 40px;
+    }
+
+    /* ── Drop zone ── */
+    .drop-zone {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 28px 28px 24px;
+      cursor: pointer;
+      transition: border-color .22s, background .22s, transform .15s;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+    }
+    .drop-zone:hover:not(.uploading):not(.done) {
+      border-color: var(--teal);
+    }
+    .drop-zone.drag-over {
+      border-color: var(--teal);
+      border-style: solid;
+      background: var(--teal-soft);
+      transform: scale(1.008);
+    }
+    .drop-zone.uploading {
+      border-color: var(--teal-ring);
+      border-style: solid;
+      cursor: default;
+    }
+    .drop-zone.done {
+      border-color: var(--teal);
+      border-style: solid;
+      background: var(--teal-soft);
+      cursor: default;
+    }
+
+    /* Icon wrapper */
+    .dz-icon {
+      width: 36px; height: 36px;
+      margin: 0 auto 12px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Idle upload arrow */
+    .icon-idle {
+      opacity: 1;
+      transition: opacity .2s;
+    }
+    .icon-idle svg {
+      width: 28px; height: 28px;
+      stroke: var(--text-3);
+      fill: none;
+      stroke-width: 1.4;
+      transition: stroke .2s;
+    }
+    .drop-zone:hover .icon-idle svg,
+    .drop-zone.drag-over .icon-idle svg { stroke: var(--teal); }
+    .drop-zone.uploading .icon-idle,
+    .drop-zone.done      .icon-idle { display: none; }
+
+    /* Spinner */
+    .icon-spinner {
+      display: none;
+      width: 36px; height: 36px;
+    }
+    .drop-zone.uploading .icon-spinner { display: block; }
+    .spinner-track {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      border: 2.5px solid var(--teal-ring);
+      border-top-color: var(--teal);
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Done checkmark */
+    .icon-done {
+      display: none;
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: var(--teal);
+      align-items: center;
+      justify-content: center;
+      animation: popIn .3s cubic-bezier(.34,1.56,.64,1);
+    }
+    .drop-zone.done .icon-done { display: flex; }
+    .icon-done svg { width: 18px; height: 18px; stroke: #fff; fill: none; stroke-width: 2.5; }
+    @keyframes popIn {
+      from { transform: scale(.5); opacity: 0; }
+      to   { transform: scale(1);  opacity: 1; }
+    }
+
+    /* Labels */
+    .dz-label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 3px;
+      transition: color .2s;
+    }
+    .dz-hint {
+      font-size: 12.5px;
+      color: var(--text-3);
+      transition: opacity .3s;
+    }
+    .drop-zone.uploading .dz-hint,
+    .drop-zone.done      .dz-hint { opacity: 0; height: 0; margin: 0; overflow: hidden; }
+
+    /* Progress bar */
+    .dz-progress {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2.5px;
+      background: var(--teal-ring);
+      border-radius: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .drop-zone.uploading .dz-progress,
+    .drop-zone.done      .dz-progress { opacity: 1; }
+
+    .dz-progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--teal), #80d3ce);
+      transition: width .6s ease-out;
+    }
+
+
+    /* ══════════════════════════════════
+       VIEW 2 — PREFERENCES
+    ══════════════════════════════════ */
+    /* ── View 2 layout ── */
+    #viewPrefs {
+      display: none;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 0;
+      min-height: 100vh;
+    }
+    #viewPrefs.active {
+      display: flex;
+      animation: fadeUp .4s cubic-bezier(.22,.68,0,1.15);
+    }
+
+    /* Full-width top bar + title */
+    .prefs-top {
+      padding: 40px 48px 32px;
+      flex-shrink: 0;
+    }
+    .prefs-top .prefs-topbar { margin-bottom: 48px; }
+    .prefs-top h2 {
+      font-size: 50px;
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1.08;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+    .prefs-top p {
+      font-size: 17px;
+      color: var(--text-2);
+      line-height: 1.55;
+      max-width: 560px;
+    }
+
+    /* Two-column body below header */
+    .prefs-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      flex: 1;
+      align-items: start;
+    }
+
+    .prefs-left {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent;
+      padding: 56px 0 56px 48px;
+      display: flex;
+      align-items: flex-start;
+    }
+    .prefs-art-wrap {
+      position: relative;
+      width: 100%;
+      height: auto;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .prefs-art {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Profile card overlay */
+    .prefs-profile {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 48px;
+      gap: 12px;
+    }
+    .profile-card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: 0 8px 40px rgba(13,30,94,.16), 0 2px 8px rgba(13,30,94,.08);
+      padding: 28px;
+      width: 100%;
+    }
+    .profile-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .profile-summary {
+      font-size: 14px;
+      color: var(--text-2);
+      line-height: 1.65;
+    }
+    .profile-edu-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--navy);
+      margin-bottom: 2px;
+    }
+    .profile-edu-sub {
+      font-size: 14px;
+      color: var(--text-3);
+    }
+
+    /* Profile stats bar */
+    .profile-stats {
+      display: flex;
+      align-items: stretch;
+      background: transparent;
+      border-radius: 14px;
+      padding: 0;
+      overflow: hidden;
+    }
+    .profile-stat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 10px 12px 10px 0;
+      text-align: left;
+    }
+    .profile-stat + .profile-stat {
+      border-left: 1px solid rgba(17,189,189,.18);
+      padding-left: 16px;
+    }
+    .profile-stat-value {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.6px;
+      line-height: 1;
+      color: #0D9488;
+      margin-bottom: 2px;
+    }
+    .profile-stat-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-3);
+      letter-spacing: .1px;
+    }
+
+    .prefs-right {
+      padding: 48px 56px 64px;
+      overflow-y: auto;
+    }
+
+    .prefs-wrap { width: 100%; max-width: 560px; }
+
+    .prefs-topbar {
+      display: flex;
+      align-items: center;
+      margin-bottom: 32px;
+    }
+    .back-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-2);
+      cursor: pointer;
+      padding: 0;
+      transition: color .15s;
+    }
+    .back-btn:hover { color: var(--navy); }
+    .back-btn svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* CV summary card */
+    .cv-card {
+      display: none;
+    }
+    .cv-avatar {
+      width: 50px; height: 50px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--navy) 0%, #2a4db5 55%, var(--teal) 100%);
+      display: grid;
+      place-items: center;
+      font-size: 16px;
+      font-weight: 900;
+      color: #fff;
+      flex-shrink: 0;
+      letter-spacing: -.4px;
+    }
+    .cv-name  { font-size: 17px; font-weight: 800; color: var(--navy); letter-spacing: -.2px; margin-bottom: 2px; }
+    .cv-role  { font-size: 14px; color: var(--text-2); margin-bottom: 10px; }
+    .cv-tags  { display: flex; flex-wrap: wrap; gap: 6px; }
+    .cv-tag {
+      font-size: 11.5px; font-weight: 600;
+      padding: 3px 9px; border-radius: 16px;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text-2);
+    }
+    .cv-tag.accent {
+      color: var(--teal);
+      background: rgba(17,189,189,.08);
+      border-color: rgba(17,189,189,.25);
+    }
+
+    /* Section label */
+    .section-label {
+      font-size: 14px;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--navy);
+      margin-bottom: 10px;
+    }
+
+    /* ── Minimal candidate card ── */
+    .pcard-name { font-size: 24px; font-weight: 700; color: var(--navy); letter-spacing: -.4px; line-height: 1.15; }
+    .pcard-role { font-size: 14px; color: var(--text-3); margin-top: 2px; }
+    .job-header-title { font-size: 14px; font-weight: 500; color: var(--text-2); margin-bottom: 4px; }
+    .job-header-role { font-size: 24px; font-weight: 700; color: var(--navy); letter-spacing: -.4px; line-height: 1.15; }
+    .job-header-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+    .job-header-badge {
+      font-size: 12px; font-weight: 500; color: var(--text-2);
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: 6px; padding: 3px 8px;
+    }
+    .pcard-divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+    .pcard-rows { display: flex; flex-direction: column; gap: 11px; }
+    .pcard-row { display: flex; gap: 14px; align-items: flex-start; }
+    .pcard-key {
+      font-size: 10px; font-weight: 700; letter-spacing: .5px;
+      text-transform: uppercase; color: var(--text-3);
+      flex-shrink: 0; width: 68px; padding-top: 3px;
+    }
+    .pcard-val { font-size: 14px; color: var(--text-2); line-height: 1.5; flex: 1; }
+    .pcard-entry-title { font-size: 14px; font-weight: 600; color: var(--navy); line-height: 1.3; }
+    .pcard-entry-sub { font-size: 14px; color: var(--text-3); margin-top: 1px; }
+    .pcard-show-more {
+      display: block;
+      margin-top: 14px;
+      background: none; border: none; padding: 0;
+      font-family: inherit; font-size: 14px; font-weight: 500;
+      color: var(--teal); cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      transition: opacity .15s;
+    }
+    .pcard-show-more:hover { opacity: .75; }
+
+    /* ── CV Modal ── */
+    .cv-modal-backdrop {
+      display: none;
+      position: fixed; inset: 0; z-index: 200;
+      background: rgba(13,30,94,.45);
+      backdrop-filter: blur(3px);
+      align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .cv-modal-backdrop.open { display: flex; animation: fadeIn .2s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .cv-modal {
+      background: #fff;
+      border-radius: 20px;
+      width: 100%; max-width: 500px;
+      max-height: 85vh;
+      overflow-y: auto;
+      padding: 36px 36px 40px;
+      position: relative;
+      box-shadow: 0 24px 80px rgba(13,30,94,.22), 0 4px 16px rgba(13,30,94,.1);
+      animation: slideUp .25s cubic-bezier(.22,.68,0,1.2);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .cv-modal-close {
+      position: absolute; top: 20px; right: 20px;
+      background: var(--surface-2); border: none; border-radius: 50%;
+      width: 32px; height: 32px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-2); transition: background .15s, color .15s;
+    }
+    .cv-modal-close:hover { background: var(--border); color: var(--navy); }
+    .cv-modal-close svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2.2; }
+    .cv-modal-header { margin-bottom: 6px; }
+    .cv-modal-name { font-size: 24px; font-weight: 700; color: var(--navy); letter-spacing: -.4px; line-height: 1.15; }
+    .cv-modal-sub { font-size: 14px; color: var(--text-2); margin-top: 3px; }
+    .cv-modal-divider { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+    .cv-modal-rows { display: flex; flex-direction: column; gap: 20px; }
+    .cv-modal-row { display: flex; gap: 20px; }
+    .cv-modal-key {
+      font-size: 9.5px; font-weight: 700; letter-spacing: .7px;
+      text-transform: uppercase; color: var(--text-3);
+      flex-shrink: 0; width: 80px; padding-top: 3px;
+    }
+    .cv-modal-entries { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+    .cv-modal-entry-title { font-size: 14px; font-weight: 600; color: var(--navy); line-height: 1.3; }
+    .cv-modal-entry-sub { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+    .cv-modal-skills { font-size: 14px; color: var(--text-2); line-height: 1.7; }
+
+    /* Prefs card */
+    .prefs-card {
+      background: var(--surface);
+      border: none;
+      border-radius: 0;
+      padding: 0;
+      box-shadow: none;
+      margin-bottom: 18px;
+    }
+    .field { margin-bottom: 36px; }
+    .field:last-child { margin-bottom: 0; }
+
+    label {
+      display: block;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 10px;
+      letter-spacing: -.4px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--navy);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      appearance: none;
+    }
+    input::placeholder { color: rgba(117,133,168,.5); }
+    input:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-ring);
+    }
+
+    /* ── Custom select ── */
+    .cs-wrap { position: relative; }
+    .cs-trigger {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--navy);
+      cursor: pointer;
+      transition: border-color .2s, box-shadow .2s;
+      text-align: left;
+    }
+    .cs-trigger:focus { outline: none; }
+    .cs-wrap.open .cs-trigger,
+    .cs-trigger:focus-visible {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px var(--teal-ring);
+    }
+    .cs-chevron {
+      width: 16px; height: 16px; flex-shrink: 0; margin-left: 8px;
+      stroke: var(--text-2); fill: none; stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round;
+      transition: transform .2s cubic-bezier(.4,0,.2,1);
+    }
+    .cs-wrap.open .cs-chevron { transform: rotate(180deg); }
+    .cs-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0; right: 0;
+      background: #fff;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 8px 32px rgba(13,30,94,.12), 0 2px 8px rgba(13,30,94,.06);
+      padding: 5px;
+      z-index: 100;
+      opacity: 0;
+      transform: translateY(-6px);
+      pointer-events: none;
+      transition: opacity .18s ease, transform .18s cubic-bezier(.4,0,.2,1);
+    }
+    .cs-wrap.open .cs-menu {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .cs-option {
+      padding: 9px 11px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text-2);
+      cursor: pointer;
+      transition: background .12s, color .12s;
+      user-select: none;
+    }
+    .cs-option:hover { background: var(--surface-2); color: var(--navy); }
+    .cs-option.selected {
+      background: var(--teal-soft);
+      color: var(--navy);
+      font-weight: 600;
+    }
+
+    .pill-group { display: flex; flex-wrap: wrap; gap: 7px; }
+    .pill {
+      padding: 7px 14px;
+      border-radius: 100px;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-2);
+      cursor: pointer;
+      user-select: none;
+      transition: all .15s;
+    }
+    .pill:hover { border-color: var(--teal); color: var(--navy); }
+    .pill.on    { border-color: var(--teal); background: var(--teal-soft); color: var(--teal); font-weight: 600; }
+
+    /* Launch button */
+    .launch-btn {
+      width: 100%;
+      padding: 15px;
+      background: #005966;
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      transition: all .2s;
+      letter-spacing: -.15px;
+    }
+    .launch-btn:hover {
+      background: #006f7f;
+      transform: translateY(-1px);
+    }
+    .secondary-btn {
+      display: block;
+      width: 100%;
+      margin-top: 12px;
+      padding: 10px 0;
+      background: none;
+      border: none;
+      color: var(--text-2);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      text-align: left;
+      cursor: pointer;
+      transition: color .2s;
+    }
+    .secondary-btn:hover { color: var(--navy); }
+
+    /* ══════════════════════════════════
+       VIEW 3 — DASHBOARD
+    ══════════════════════════════════ */
+    #viewDashboard {
+      display: none;
+      flex-direction: row;
+      align-items: stretch;
+      padding: 0;
+      min-height: 100vh;
+    }
+    #viewDashboard.active {
+      display: flex;
+      animation: fadeUp .4s cubic-bezier(.22,.68,0,1.15);
+    }
+
+    /* ── Sidebar ── */
+    .dash-sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      width: 224px;
+      min-width: 224px;
+      background: #fff;
+      border-right: 1px solid #eef0f6;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      flex-shrink: 0;
+      z-index: 10;
+      transition: width .25s cubic-bezier(.4,0,.2,1), min-width .25s cubic-bezier(.4,0,.2,1);
+    }
+    .dash-sidebar.collapsed {
+      width: 64px;
+      min-width: 64px;
+    }
+    .dash-sidebar-top {
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      flex-shrink: 0;
+    }
+    .dash-sidebar.collapsed .dash-sidebar-top {
+      justify-content: center;
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      overflow: hidden;
+      min-width: 0;
+      background: none; border: none; padding: 0; cursor: pointer;
+      transition: opacity .15s;
+    }
+    .sidebar-logo:hover { opacity: .75; }
+    .dash-sidebar.collapsed .sidebar-logo { display: none; }
+    .sidebar-logo img { width: 30px; height: 30px; display: block; flex-shrink: 0; }
+    .sidebar-logo-name {
+      font-size: 17px; font-weight: 900; color: var(--navy); letter-spacing: -.3px;
+      white-space: nowrap;
+      opacity: 1; transform: translateX(0);
+      transition: opacity .18s, transform .18s;
+    }
+    .dash-sidebar.collapsed .sidebar-logo-name {
+      opacity: 0; transform: translateX(-6px); pointer-events: none;
+    }
+    .sidebar-toggle {
+      width: 28px; height: 28px;
+      background: none; border: none; cursor: pointer; border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-2); flex-shrink: 0;
+      transition: background .15s, color .15s;
+    }
+    .sidebar-toggle:hover { background: var(--surface-2); color: var(--navy); }
+    .sidebar-toggle svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+    /* ── Nav items ── */
+    .dash-nav { flex: 1; padding: 16px 10px; overflow-y: auto; overflow-x: hidden; }
+    .dash-nav-section { margin-bottom: 22px; }
+    .dash-nav-section:last-child { margin-bottom: 0; }
+    .dash-nav-section-label {
+      font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;
+      color: var(--text-3); padding: 0 10px; margin-bottom: 6px;
+      white-space: nowrap; overflow: hidden;
+      max-height: 24px; opacity: 1;
+      transition: opacity .18s, max-height .2s, margin-bottom .2s;
+    }
+    .dash-sidebar.collapsed .dash-nav-section-label {
+      opacity: 0; max-height: 0; margin-bottom: 0;
+    }
+    .dash-nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 10px; border-radius: 8px; cursor: pointer;
+      color: var(--text-2); font-size: 14px; font-weight: 500;
+      white-space: nowrap; user-select: none;
+      transition: background .15s, color .15s;
+    }
+    .dash-nav-item:hover { background: var(--surface-2); color: var(--navy); }
+    .dash-nav-item.active { background: var(--teal-soft); color: var(--teal); font-weight: 600; }
+    .dash-nav-icon {
+      width: 18px; height: 18px; stroke: currentColor; fill: none;
+      stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+      flex-shrink: 0;
+    }
+    .dash-nav-label { opacity: 1; overflow: hidden; transition: opacity .18s; }
+    .dash-sidebar.collapsed .dash-nav-label { opacity: 0; width: 0; pointer-events: none; }
+    .dash-sidebar.collapsed .dash-nav-item { justify-content: center; padding: 9px; }
+
+    /* ── Dashboard main area ── */
+    .dash-main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #fff; }
+    .dash-topbar {
+      background: #fff;
+      padding: 28px 32px 20px;
+      display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+    }
+    .dash-topbar-title { font-size: 24px; font-weight: 700; color: var(--navy); letter-spacing: -.4px; line-height: 1.15; }
+    .dash-content { flex: 1; padding: 4px 32px 56px; overflow-y: auto; }
+
+    /* Inline status pill */
+    .dash-status-inline {
+      display: flex; align-items: center; gap: 7px;
+      background: #f5f6f8; border-radius: 100px;
+      padding: 7px 13px; flex-shrink: 0;
+    }
+    .dash-status-dot {
+      width: 7px; height: 7px; border-radius: 50%; background: var(--teal);
+      flex-shrink: 0; animation: pulseGlow 2.4s ease infinite;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 3px var(--teal-ring); }
+      50%       { box-shadow: 0 0 0 6px rgba(17,189,189,.05); }
+    }
+    .dash-status-label { font-size: 12px; font-weight: 500; color: var(--text-2); white-space: nowrap; }
+
+    /* Metric cards */
+    .dash-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+    .dash-metric {
+      background: #f5f6f8; border-radius: 14px; padding: 20px 22px;
+    }
+    .dash-metric-value {
+      font-size: 28px; font-weight: 900; color: var(--navy);
+      letter-spacing: -1px; line-height: 1; margin-bottom: 4px;
+    }
+    .dash-metric-label { font-size: 13px; font-weight: 500; color: var(--text-2); }
+
+    /* Recent applications card */
+    .dash-recent-card { background: #fff; border-radius: 14px; border: 1.5px solid var(--border); overflow: hidden; }
+    .dash-recent-head {
+      padding: 16px 24px; border-bottom: 1.5px solid var(--border);
+      font-size: 14px; font-weight: 700; color: var(--navy);
+    }
+    .dash-recent-row {
+      display: flex; align-items: center; gap: 14px;
+      padding: 14px 24px; border-bottom: 1px solid var(--border);
+      transition: background .12s;
+    }
+    .dash-recent-row:last-child { border-bottom: none; }
+    .dash-recent-row:hover { background: var(--surface-2); }
+    .dash-recent-co {
+      width: 36px; height: 36px; border-radius: 8px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: var(--text-2);
+      flex-shrink: 0; letter-spacing: -.2px;
+    }
+    .dash-recent-info { flex: 1; min-width: 0; }
+    .dash-recent-role { font-size: 14px; font-weight: 600; color: var(--navy); }
+    .dash-recent-company { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+    .dash-badge {
+      font-size: 11px; font-weight: 600; padding: 3px 9px;
+      border-radius: 100px; flex-shrink: 0; white-space: nowrap;
+    }
+    .dash-badge.applied { background: var(--teal-soft); color: var(--teal); border: 1px solid var(--teal-ring); }
+    .dash-badge.reviewing { background: rgba(251,191,36,.1); color: #B45309; border: 1px solid rgba(251,191,36,.25); }
+    .dash-badge.queued { background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); }
+
+    /* ── Swipe cards ── */
+    .swipe-section { margin-bottom: 36px; }
+    .swipe-inner { max-width: 480px; margin: 0 auto; }
+    .swipe-section-hd { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+    .swipe-section-title { font-size: 15px; font-weight: 700; color: var(--navy); }
+    .swipe-count-pill {
+      font-size: 11px; font-weight: 700; color: var(--teal);
+      background: var(--teal-soft); border: 1px solid var(--teal-ring);
+      border-radius: 100px; padding: 2px 8px;
+    }
+    .swipe-hint-text { margin-left: auto; font-size: 12px; color: var(--text-3); }
+
+    .swipe-stack { position: relative; height: 210px; }
+    .swipe-card {
+      position: absolute; inset: 0;
+      background: #fff; border-radius: 18px; border: 1.5px solid var(--border);
+      padding: 18px 20px;
+      user-select: none; -webkit-user-select: none;
+      will-change: transform;
+      transition: transform .28s cubic-bezier(.4,0,.2,1), box-shadow .28s, opacity .28s, border-color .12s;
+      overflow: hidden; transform-origin: center 95%;
+    }
+    .swipe-card-top {
+      cursor: grab; z-index: 10;
+      box-shadow: 0 6px 28px rgba(13,30,94,.09), 0 1px 4px rgba(13,30,94,.05);
+    }
+    .swipe-card-top:active { cursor: grabbing; }
+    .swipe-card-back1 { transform: translateY(10px) scale(.97); z-index: 9; }
+    .swipe-card-back2 { transform: translateY(20px) scale(.94); z-index: 8; opacity: .55; }
+    .swipe-card-hidden { transform: translateY(28px) scale(.91); z-index: 7; opacity: 0; pointer-events: none; }
+
+    /* Direction labels stamped on card while dragging */
+    .scard-lbl {
+      position: absolute; top: 18px;
+      font-size: 11px; font-weight: 800; letter-spacing: .9px; text-transform: uppercase;
+      padding: 3px 8px; border-radius: 5px; border: 2px solid;
+      opacity: 0; pointer-events: none; transition: opacity .06s;
+    }
+    .scard-lbl-skip  { right: 18px; color: #EF4444; border-color: #EF4444; background: rgba(239,68,68,.05); }
+    .scard-lbl-apply { left:  18px; color: var(--teal); border-color: var(--teal); background: var(--teal-soft); }
+
+    /* Card inner content */
+    .scard-hd { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+    .scard-co {
+      width: 44px; height: 44px; border-radius: 11px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: #fff; letter-spacing: -.3px;
+    }
+    .scard-role    { font-size: 18px; font-weight: 800; color: var(--navy); letter-spacing: -.5px; line-height: 1.2; margin-bottom: 3px; }
+    .scard-company { font-size: 13px; color: var(--text-2); }
+    .scard-meta    { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+    .scard-mb {
+      font-size: 12px; font-weight: 500; padding: 4px 10px;
+      border-radius: 100px; border: 1px solid rgba(61,79,114,.18);
+      background: transparent; color: #3d4f72;
+    }
+    .scard-mb.high { background: rgba(17,189,189,.12); color: #0E7490; border: none; font-weight: 700; }
+    .scard-mb.good { background: rgba(251,191,36,.1); color: #B45309; border: 1px solid rgba(251,191,36,.25); }
+
+    /* Job summary line on swipe cards */
+    .scard-summary {
+      font-size: 13px; color: var(--text-2); line-height: 1.5; margin-top: 0;
+    }
+
+    /* Skip / Apply buttons */
+    .swipe-actions {
+      display: flex; align-items: center; gap: 8px;
+      margin-left: auto; transition: opacity .2s;
+    }
+    .swipe-btn {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 22px; border-radius: 16px;
+      font-family: inherit; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: 1.5px solid; transition: all .15s; line-height: 1;
+    }
+    .swipe-btn svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    .swipe-btn-skip  { background: #fff; border-color: var(--border); color: var(--text-2); }
+    .swipe-btn-skip:hover  { border-color: #EF4444; color: #EF4444; }
+    .swipe-btn-apply { background: #005966; border-color: #005966; color: #fff; }
+    .swipe-btn-apply:hover { background: #006f7f; border-color: #006f7f; }
+
+    /* Empty state */
+    .swipe-empty {
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      height: 278px; text-align: center;
+    }
+    .swipe-empty-icon {
+      width: 44px; height: 44px; border-radius: 50%; background: var(--teal-soft);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;
+    }
+    .swipe-empty-icon svg { width: 20px; height: 20px; stroke: var(--teal); fill: none; stroke-width: 2; stroke-linecap: round; }
+    .swipe-empty-title { font-size: 15px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+    .swipe-empty-sub   { font-size: 13px; color: var(--text-2); }
+
+    /* ══════════════════════════════════
+       RESPONSIVE
+    ══════════════════════════════════ */
+
+    /* Tablet — collapse two-column layout */
+    @media (max-width: 900px) {
+      .prefs-top {
+        padding: 24px 28px 20px;
+      }
+      .prefs-top h2 {
+        font-size: 36px;
+        letter-spacing: -1px;
+      }
+      .prefs-columns {
+        grid-template-columns: 1fr;
+      }
+      .prefs-left {
+        position: relative;
+        height: 340px;
+        padding: 24px 24px 24px 24px;
+      }
+      .prefs-art-wrap {
+        height: 100%;
+      }
+      .prefs-profile {
+        position: absolute;
+        inset: 0;
+        padding: 24px;
+        justify-content: flex-start;
+      }
+      .prefs-right {
+        padding: 32px 28px 48px;
+      }
+      .prefs-wrap {
+        max-width: 100%;
+      }
+    }
+
+    /* Mobile */
+    @media (max-width: 600px) {
+      /* View 1 */
+      .upload-topnav {
+        padding: 16px 20px;
+      }
+      .headline {
+        font-size: 34px;
+        letter-spacing: -1.2px;
+      }
+      .subline {
+        font-size: 15px;
+        margin-bottom: 28px;
+      }
+      .drop-zone {
+        padding: 36px 20px 28px;
+      }
+
+      /* View 2 header */
+      .prefs-top {
+        padding: 16px 20px 14px;
+      }
+      .prefs-top h2 {
+        font-size: 26px;
+        letter-spacing: -0.6px;
+      }
+      .prefs-top p {
+        font-size: 15px;
+      }
+
+      /* Left panel: compact on mobile */
+      .prefs-left {
+        height: 240px;
+        padding: 14px;
+      }
+      .prefs-art-wrap {
+        height: 100%;
+      }
+      .prefs-profile {
+        position: absolute;
+        inset: 0;
+        padding: 14px;
+        justify-content: flex-start;
+      }
+      .profile-card {
+        padding: 18px;
+      }
+      .profile-stat-value {
+        font-size: 24px;
+      }
+
+      /* Right column */
+      .prefs-right {
+        padding: 20px 20px 48px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════════════════
+     VIEW 1 — UPLOAD
+════════════════════════ -->
+<div class="view active" id="viewUpload">
+
+  <nav class="upload-topnav">
+    <button class="logo" onclick="goHome()">
+      <img src="App Icon - Favicon.png" alt="applybot" />
+      <span class="logo-name">applybot</span>
+    </button>
+  </nav>
+
+  <div class="upload-wrap">
+
+    <h1 class="headline">Skip the Applications.<br /><em>Land the Interviews.</em></h1>
+    <p class="subline">ApplyBot tailors your CV, applies to the top jobs for you, and guides you in real time so you get hired faster.</p>
+
+    <div class="drop-zone" id="dropZone"
+         onclick="document.getElementById('cvFile').click()"
+         ondragover="onDragOver(event)"
+         ondragleave="onDragLeave(event)"
+         ondrop="onDrop(event)">
+
+      <div class="dz-icon">
+        <div class="icon-idle">
+          <svg viewBox="0 0 24 24">
+            <line x1="12" y1="16" x2="12" y2="4"/>
+            <polyline points="7 9 12 4 17 9"/>
+            <line x1="5" y1="20" x2="19" y2="20"/>
+          </svg>
+        </div>
+        <div class="icon-spinner">
+          <div class="spinner-track"></div>
+        </div>
+        <div class="icon-done">
+          <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        </div>
+      </div>
+
+      <div class="dz-label" id="dzLabel">Click or drag to upload your CV</div>
+      <div class="dz-hint" id="dzHint">PDF, DOCX or TXT &nbsp;&middot;&nbsp; up to 5 MB</div>
+
+      <div class="dz-progress" id="dzProgress">
+        <div class="dz-progress-fill" id="dzFill"></div>
+      </div>
+
+      <input type="file" id="cvFile" accept=".pdf,.doc,.docx,.txt"
+             style="display:none" onchange="onFileSelect(this)" />
+    </div>
+
+  </div>
+</div>
+
+
+<!-- ════════════════════════
+     VIEW 2 — PREFERENCES
+════════════════════════ -->
+<div class="view" id="viewPrefs">
+
+  <!-- Full-width top: topbar + page title -->
+  <div class="prefs-top">
+    <div class="prefs-topbar">
+      <button class="logo" onclick="goHome()">
+        <img src="App Icon - Favicon.png" alt="applybot" />
+        <span class="logo-name">applybot</span>
+      </button>
+    </div>
+    <h2>Let's get started, Lindsay</h2>
+    <p>Tell us what you're looking for and we'll handle the matching, tailoring, and applying - so you don't have to. Get better suited roles faster and without the busywork.</p>
+  </div>
+
+  <!-- Two-column body -->
+  <div class="prefs-columns">
+
+    <!-- Left: sticky abstract art panel with profile card overlay -->
+    <div class="prefs-left">
+      <div class="prefs-art-wrap">
+      <svg class="prefs-art" viewBox="0 0 480 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="artBg" x1="0" y1="0" x2="0.4" y2="1">
+            <stop offset="0%" stop-color="#dff4f4"/>
+            <stop offset="55%" stop-color="#eaf4fb"/>
+            <stop offset="100%" stop-color="#f0f7fd"/>
+          </linearGradient>
+          <radialGradient id="artG1" gradientUnits="userSpaceOnUse" cx="140" cy="170" r="290">
+            <stop offset="0%" stop-color="#11BDBD" stop-opacity="0.38"/>
+            <stop offset="100%" stop-color="#11BDBD" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="artG2" gradientUnits="userSpaceOnUse" cx="390" cy="590" r="270">
+            <stop offset="0%" stop-color="#3ec9e2" stop-opacity="0.30"/>
+            <stop offset="100%" stop-color="#3ec9e2" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="artG3" gradientUnits="userSpaceOnUse" cx="70" cy="790" r="230">
+            <stop offset="0%" stop-color="#11BDBD" stop-opacity="0.24"/>
+            <stop offset="100%" stop-color="#11BDBD" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="artG4" gradientUnits="userSpaceOnUse" cx="420" cy="70" r="210">
+            <stop offset="0%" stop-color="#85d8ee" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="#85d8ee" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="artG5" gradientUnits="userSpaceOnUse" cx="240" cy="450" r="180">
+            <stop offset="0%" stop-color="#11BDBD" stop-opacity="0.10"/>
+            <stop offset="100%" stop-color="#11BDBD" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <rect width="480" height="900" fill="url(#artBg)"/>
+        <path d="M -50,30 C 100,-90 360,10 395,155 C 430,300 295,395 150,355 C 5,315 -90,195 -50,30 Z" fill="url(#artG1)"/>
+        <path d="M 255,430 C 460,365 570,510 530,665 C 490,820 340,855 210,790 C 80,725 65,595 130,510 C 195,425 255,430 255,430 Z" fill="url(#artG2)"/>
+        <path d="M -70,675 C 35,565 215,610 255,740 C 295,870 185,970 35,950 C -115,930 -175,785 -70,675 Z" fill="url(#artG3)"/>
+        <path d="M 390,-70 C 535,-25 570,105 505,210 C 440,315 310,295 270,205 C 230,115 275,-90 390,-70 Z" fill="url(#artG4)"/>
+        <ellipse cx="240" cy="450" rx="180" ry="160" fill="url(#artG5)"/>
+      </svg>
+
+      <!-- Candidate profile card, floated over the gradient -->
+      <div class="prefs-profile">
+
+        <!-- Job search + stats card -->
+        <div class="profile-card">
+          <div class="job-header-title">Your job search</div>
+          <div class="job-header-role">Lead Designer</div>
+
+          <div class="job-header-badges">
+            <span class="job-header-badge">London, UK</span>
+            <span class="job-header-badge">£100,000 per year</span>
+          </div>
+          <div class="profile-stats" style="margin-top: 14px;">
+            <div class="profile-stat">
+              <div class="profile-stat-value">450</div>
+              <div class="profile-stat-label">available roles</div>
+            </div>
+            <div class="profile-stat">
+              <div class="profile-stat-value">High</div>
+              <div class="profile-stat-label">interview chance</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Candidate card -->
+        <div class="profile-card">
+
+          <!-- Header -->
+          <div style="margin-bottom: 14px;">
+            <div class="pcard-name">Lindsay Smith</div>
+            <div class="pcard-role">Lead Product Designer &middot; Berlin, Germany</div>
+          </div>
+
+          <hr class="pcard-divider">
+
+          <div class="pcard-rows">
+
+            <div class="pcard-row">
+              <div class="pcard-key">Skills</div>
+              <div class="pcard-val">Product Strategy &middot; Design Systems &middot; Figma</div>
+            </div>
+
+            <div class="pcard-row">
+              <div class="pcard-key">Experience</div>
+              <div class="pcard-val">
+                <div class="pcard-entry-title">Lead Product Designer</div>
+                <div class="pcard-entry-sub">Stepstone Group &middot; 2019 – Present</div>
+              </div>
+            </div>
+
+            <div class="pcard-row">
+              <div class="pcard-key">Education</div>
+              <div class="pcard-val">
+                <div class="pcard-entry-title">MSc Business &amp; Technology</div>
+                <div class="pcard-entry-sub">Univ. of Applied Sciences, Berlin</div>
+              </div>
+            </div>
+
+          </div>
+
+          <button class="pcard-show-more" onclick="openCVModal()">Show more</button>
+
+        </div>
+      </div>
+      </div><!-- prefs-art-wrap -->
+    </div>
+
+    <!-- Right: scrollable content -->
+    <div class="prefs-right">
+    <div class="prefs-wrap">
+
+    <!-- CV summary -->
+    <div class="cv-card">
+      <div class="cv-avatar" id="cvAvatar">LS</div>
+      <div>
+        <div class="cv-name" id="cvName">Lindsay Smith</div>
+        <div class="cv-role" id="cvRole">Lead Product Designer</div>
+        <div class="cv-tags">
+          <span class="cv-tag accent">15 years experience</span>
+          <span class="cv-tag">MSc Business &amp; Technology</span>
+          <span class="cv-tag">Berlin, Germany</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Preferences -->
+    <div class="prefs-card">
+      <div class="field">
+        <label>Target role</label>
+        <input type="text" id="prefRole" placeholder="e.g. Product Manager, UX Designer, Engineer…" />
+      </div>
+      <div class="field">
+        <label>Location</label>
+        <input type="text" id="prefLocation" placeholder="e.g. Berlin, London, Remote EU…" />
+      </div>
+      <div class="field">
+        <label>Experience level</label>
+        <div class="cs-wrap" id="csLevel">
+          <button class="cs-trigger" type="button" onclick="csToggle('csLevel')" aria-haspopup="listbox" aria-expanded="false">
+            <span class="cs-value">Senior</span>
+            <svg class="cs-chevron" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+          <div class="cs-menu" role="listbox">
+            <div class="cs-option" role="option" onclick="csPick('csLevel',this)">Entry</div>
+            <div class="cs-option" role="option" onclick="csPick('csLevel',this)">Junior</div>
+            <div class="cs-option" role="option" onclick="csPick('csLevel',this)">Mid-level</div>
+            <div class="cs-option selected" role="option" onclick="csPick('csLevel',this)">Senior</div>
+            <div class="cs-option" role="option" onclick="csPick('csLevel',this)">Lead</div>
+            <div class="cs-option" role="option" onclick="csPick('csLevel',this)">Manager</div>
+            <div class="cs-option" role="option" onclick="csPick('csLevel',this)">Director</div>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Work arrangement</label>
+        <div class="pill-group">
+          <div class="pill" onclick="pick(this,'arr')">Remote</div>
+          <div class="pill on" onclick="pick(this,'arr')">Hybrid</div>
+          <div class="pill" onclick="pick(this,'arr')">On-site</div>
+        </div>
+      </div>
+      <div class="field">
+        <label>Preferred salary</label>
+        <input type="text" id="prefSalary" placeholder="e.g. €80,000–€100,000 / year" />
+      </div>
+      <div class="field">
+        <label>Industry preferences</label>
+        <input type="text" id="prefIndustry" placeholder="e.g. FinTech, SaaS, E-commerce, Healthcare…" />
+      </div>
+      <div class="field">
+        <label>Available to start</label>
+        <div class="pill-group">
+          <div class="pill" onclick="pick(this,'start')">Immediately</div>
+          <div class="pill" onclick="pick(this,'start')">2 weeks</div>
+          <div class="pill" onclick="pick(this,'start')">1 month</div>
+          <div class="pill" onclick="pick(this,'start')">3 months</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="launch-btn" onclick="launch()">
+      Start Applying
+    </button>
+    <button class="secondary-btn" onclick="goBack()">
+      Replace CV
+    </button>
+
+  </div><!-- prefs-wrap -->
+  </div><!-- prefs-right -->
+  </div><!-- prefs-columns -->
+</div>
+
+
+<!-- ════════════════════════
+     VIEW 3 — DASHBOARD
+════════════════════════ -->
+<div class="view" id="viewDashboard">
+
+  <!-- Sidebar -->
+  <aside class="dash-sidebar" id="dashSidebar">
+
+    <div class="dash-sidebar-top">
+      <button class="sidebar-logo" onclick="goHome()">
+        <img src="App Icon - Favicon.png" alt="applybot">
+        <span class="sidebar-logo-name">applybot</span>
+      </button>
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle navigation">
+        <svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="17" x2="20" y2="17"/></svg>
+      </button>
+    </div>
+
+    <nav class="dash-nav">
+      <!-- Application -->
+      <div class="dash-nav-section">
+        <div class="dash-nav-section-label">Application</div>
+        <div class="dash-nav-item active" onclick="dashNav(this)" title="Auto Apply">
+          <svg class="dash-nav-icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          <span class="dash-nav-label">Auto Apply</span>
+        </div>
+        <div class="dash-nav-item" onclick="dashNav(this)" title="Inbox">
+          <svg class="dash-nav-icon" viewBox="0 0 24 24"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/></svg>
+          <span class="dash-nav-label">Inbox</span>
+        </div>
+        <div class="dash-nav-item" onclick="dashNav(this)" title="Search">
+          <svg class="dash-nav-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <span class="dash-nav-label">Search</span>
+        </div>
+        <div class="dash-nav-item" onclick="dashNav(this)" title="Saved">
+          <svg class="dash-nav-icon" viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+          <span class="dash-nav-label">Saved</span>
+        </div>
+      </div>
+      <!-- Documents -->
+      <div class="dash-nav-section">
+        <div class="dash-nav-section-label">Documents</div>
+        <div class="dash-nav-item" onclick="dashNav(this)" title="Resumes">
+          <svg class="dash-nav-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          <span class="dash-nav-label">Resumes</span>
+        </div>
+        <div class="dash-nav-item" onclick="dashNav(this)" title="Cover Letters">
+          <svg class="dash-nav-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          <span class="dash-nav-label">Cover Letters</span>
+        </div>
+      </div>
+    </nav>
+
+  </aside>
+
+  <!-- Main content -->
+  <main class="dash-main">
+
+    <div class="dash-topbar">
+      <div class="dash-topbar-title" id="dashTopbarTitle">Auto Apply</div>
+      <div class="dash-status-inline">
+        <div class="dash-status-dot"></div>
+        <span class="dash-status-label">ApplyBot is running</span>
+      </div>
+    </div>
+
+    <div class="dash-content">
+
+      <!-- Metrics -->
+      <div class="dash-metrics">
+        <div class="dash-metric">
+          <div class="dash-metric-value">12</div>
+          <div class="dash-metric-label">Applications sent</div>
+        </div>
+        <div class="dash-metric">
+          <div class="dash-metric-value">3</div>
+          <div class="dash-metric-label">In review</div>
+        </div>
+        <div class="dash-metric">
+          <div class="dash-metric-value">450</div>
+          <div class="dash-metric-label">Roles matched</div>
+        </div>
+      </div>
+
+      <!-- ── Suggested roles (swipe stack) ── -->
+      <div class="swipe-section">
+
+        <!-- Full-width header -->
+        <div class="swipe-section-hd">
+          <div class="swipe-section-title">Suggested roles</div>
+          <span class="swipe-count-pill" id="swipeCount">8 roles</span>
+          <div class="swipe-actions" id="swipeActions">
+            <button class="swipe-btn swipe-btn-skip" onclick="swipeAction('left')">
+              <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              Skip
+            </button>
+            <button class="swipe-btn swipe-btn-apply" onclick="swipeAction('right')">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+              Apply
+            </button>
+          </div>
+        </div>
+
+        <!-- Centered stack + actions -->
+        <div class="swipe-inner">
+
+          <div class="swipe-stack" id="swipeStack">
+
+            <!-- Card 8 — deepest hidden -->
+            <div class="swipe-card swipe-card-hidden">
+              <div class="scard-hd">
+                <div class="scard-co" style="background:#1D1D1D;">AS</div>
+                <div>
+                  <div class="scard-role">Design Director</div>
+                  <div class="scard-company">ASOS &middot; London, UK</div>
+                </div>
+              </div>
+              <div class="scard-meta">
+                <span class="scard-mb high">High Match</span>
+                <span class="scard-mb">£130–155k / yr</span>
+                <span class="scard-mb">Hybrid</span>
+                <span class="scard-mb">Full-time</span>
+              </div>
+              <p class="scard-summary">Lead design strategy across ASOS's fashion discovery and checkout experience. Manage a team of 12 while partnering with product and technology leadership.</p>
+            </div>
+
+            <!-- Card 7 — hidden -->
+            <div class="swipe-card swipe-card-hidden">
+              <div class="scard-hd">
+                <div class="scard-co" style="background:#A259FF;">FG</div>
+                <div>
+                  <div class="scard-role">Senior Product Designer</div>
+                  <div class="scard-company">Figma &middot; Remote</div>
+                </div>
+              </div>
+              <div class="scard-meta">
+                <span class="scard-mb good">Good Match</span>
+                <span class="scard-mb">£90–110k / yr</span>
+                <span class="scard-mb">Remote</span>
+                <span class="scard-mb">Full-time</span>
+              </div>
+              <p class="scard-summary">Design new features for Figma's editor and plugin ecosystem, shaping tools used by over 4 million designers worldwide.</p>
+            </div>
+
+            <!-- Card 6 — hidden -->
+            <div class="swipe-card swipe-card-hidden">
+              <div class="scard-hd">
+                <div class="scard-co" style="background:#FF8A00;">MI</div>
+                <div>
+                  <div class="scard-role">Principal Product Designer</div>
+                  <div class="scard-company">Miro &middot; Remote</div>
+                </div>
+              </div>
+              <div class="scard-meta">
+                <span class="scard-mb high">High Match</span>
+                <span class="scard-mb">£100–120k / yr</span>
+                <span class="scard-mb">Remote</span>
+                <span class="scard-mb">Full-time</span>
+              </div>
+              <p class="scard-summary">Define the design direction for Miro's collaboration platform. Shape tools and workflows used by enterprise teams across 140+ countries.</p>
+            </div>
+
+            <!-- Card 5 — bottom of stack (hidden) -->
+            <div class="swipe-card swipe-card-hidden">
+
+              <div class="scard-hd">
+                <div class="scard-co" style="background:#00CCBC;">DV</div>
+                <div>
+                  <div class="scard-role">Product Design Manager</div>
+                  <div class="scard-company">Deliveroo &middot; London, UK</div>
+                </div>
+              </div>
+              <div class="scard-meta">
+                <span class="scard-mb high">High Match</span>
+                <span class="scard-mb">£110–125k / yr</span>
+                <span class="scard-mb">Hybrid</span>
+                <span class="scard-mb">Full-time</span>
+              </div>
+              <p class="scard-summary">Manage senior designers working across Deliveroo's consumer app. Drive design quality and mentorship while partnering with product leadership.</p>
+            </div>
+
+            <!-- Card 4 — hidden -->
+            <div class="swipe-card swipe-card-hidden">
+
+              <div class="scard-hd">
+                <div class="scard-co" style="background:#8B5CF6;">CV</div>
+                <div>
+                  <div class="scard-role">Design Systems Lead</div>
+                  <div class="scard-company">Canva &middot; Remote</div>
+                </div>
+              </div>
+              <div class="scard-meta">
+                <span class="scard-mb good">Good Match</span>
+                <span class="scard-mb">£100–120k / yr</span>
+                <span class="scard-mb">Remote</span>
+                <span class="scard-mb">Full-time</span>
+              </div>
+              <p class="scard-summary">Define and scale Canva's design system used by millions globally. Establish standards and build components that enable consistency across 40+ product teams.</p>
+            </div>
+
+            <!-- Card 3 — back-2 -->
+            <div class="swipe-card swipe-card-back2">
+
+              <div class="scard-hd">
+                <div class="scard-co" style="background:#1DB954;">SP</div>
+                <div>
+                  <div class="scard-role">Senior UX Lead</div>
+                  <div class="scard-company">Spotify &middot; Remote</div>
+                </div>
+              </div>
+              <div class="scard-meta">
+                <span class="scard-mb high">High Match</span>
+                <span class="scard-mb">£95–115k / yr</span>
+                <span class="scard-mb">Remote</span>
+                <span class="scard-mb">Full-time</span>
+              </div>
+              <p class="scard-summary">Lead UX for a cross-functional pod within Spotify's Creator platform. Drive end-to-end design from discovery through launch across multiple surfaces.</p>
+            </div>
+
+            <!-- Card 2 — back-1 -->
+            <div class="swipe-card swipe-card-back1">
+
+              <div class="scard-hd">
+                <div class="scard-co" style="background:#0082FF;">MZ</div>
+                <div>
+                  <div class="scard-role">Head of Product Design</div>
+                  <div class="scard-company">Monzo &middot; London, UK</div>
+                </div>
+              </div>
+              <div class="scard-meta">
+                <span class="scard-mb high">High Match</span>
+                <span class="scard-mb">£120–140k / yr</span>
+                <span class="scard-mb">Hybrid</span>
+                <span class="scard-mb">Full-time</span>
+              </div>
+              <p class="scard-summary">Own design strategy across Monzo's consumer banking products. Partner with PMs and engineers to ship delightful, high-impact experiences at scale.</p>
+            </div>
+
+            <!-- Card 1 — top -->
+            <div class="swipe-card swipe-card-top">
+
+              <div class="scard-hd">
+                <div class="scard-co" style="background:#6E4DFF;">TF</div>
+                <div>
+                  <div class="scard-role">Lead Product Designer</div>
+                  <div class="scard-company">Typeform &middot; London, UK</div>
+                </div>
+              </div>
+              <div class="scard-meta">
+                <span class="scard-mb high">High Match</span>
+                <span class="scard-mb">£85–100k / yr</span>
+                <span class="scard-mb">Hybrid</span>
+                <span class="scard-mb">Full-time</span>
+              </div>
+              <p class="scard-summary">Shape the future of form experiences across web and mobile. Lead a team of 4 designers and drive Typeform's core product design vision.</p>
+            </div>
+
+          </div><!-- /swipe-stack -->
+
+          <!-- Empty state -->
+          <div class="swipe-empty" id="swipeEmpty">
+            <div class="swipe-empty-icon">
+              <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="swipe-empty-title">You're all caught up</div>
+            <div class="swipe-empty-sub">New matches loading — check back soon</div>
+          </div>
+
+
+        </div><!-- /swipe-inner -->
+      </div>
+
+      <!-- ── Recent Applications ── -->
+      <div class="dash-recent-card">
+        <div class="dash-recent-head">Recent applications</div>
+        <div id="recentApplicationsList">
+          <div class="dash-recent-row">
+            <div class="dash-recent-co">DS</div>
+            <div class="dash-recent-info">
+              <div class="dash-recent-role">Lead Designer</div>
+              <div class="dash-recent-company">DesignStudio &middot; London, UK</div>
+            </div>
+            <span class="dash-badge applied">Applied</span>
+          </div>
+          <div class="dash-recent-row">
+            <div class="dash-recent-co">UX</div>
+            <div class="dash-recent-info">
+              <div class="dash-recent-role">Head of Product Design</div>
+              <div class="dash-recent-company">UXCEL &middot; Remote</div>
+            </div>
+            <span class="dash-badge reviewing">Reviewing</span>
+          </div>
+          <div class="dash-recent-row">
+            <div class="dash-recent-co">CR</div>
+            <div class="dash-recent-info">
+              <div class="dash-recent-role">Senior UX Lead</div>
+              <div class="dash-recent-company">Craft &middot; Berlin, Germany</div>
+            </div>
+            <span class="dash-badge applied">Applied</span>
+          </div>
+          <div class="dash-recent-row">
+            <div class="dash-recent-co">BK</div>
+            <div class="dash-recent-info">
+              <div class="dash-recent-role">Product Design Manager</div>
+              <div class="dash-recent-company">Booking.com &middot; Amsterdam</div>
+            </div>
+            <span class="dash-badge queued">Queued</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+
+<script>
+  /* ── Drag & drop ── */
+  function onDragOver(e) {
+    e.preventDefault();
+    document.getElementById('dropZone').classList.add('drag-over');
+  }
+  function onDragLeave() {
+    document.getElementById('dropZone').classList.remove('drag-over');
+  }
+  function onDrop(e) {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    if (f) processFile(f);
+  }
+  function onFileSelect(input) {
+    if (input.files[0]) processFile(input.files[0]);
+  }
+
+  /* ── File processing ── */
+  function processFile(f) {
+    const zone  = document.getElementById('dropZone');
+    const label = document.getElementById('dzLabel');
+    const fill  = document.getElementById('dzFill');
+
+    document.getElementById('cvAvatar').textContent = 'LS';
+
+    // Transition → uploading
+    zone.classList.remove('drag-over');
+    zone.classList.add('uploading');
+    label.textContent = f.name;
+
+    // Animate progress: 0 → 65% → 88% → 100%
+    requestAnimationFrame(() => {
+      fill.style.transition = 'width .55s ease-out';
+      fill.style.width = '65%';
+    });
+    setTimeout(() => {
+      fill.style.transition = 'width .7s ease-out';
+      fill.style.width = '88%';
+    }, 620);
+    setTimeout(() => {
+      fill.style.transition = 'width .3s ease-out';
+      fill.style.width = '100%';
+    }, 1380);
+
+    // Transition → done
+    setTimeout(() => {
+      zone.classList.remove('uploading');
+      zone.classList.add('done');
+      label.textContent = 'CV uploaded';
+    }, 1750);
+
+    // Advance to preferences
+    setTimeout(showPrefs, 2350);
+  }
+
+  /* ── View transitions ── */
+  function goHome() {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('viewUpload').classList.add('active');
+    // Reset upload zone
+    const zone = document.getElementById('dropZone');
+    zone.classList.remove('uploading', 'done', 'drag-over');
+    document.getElementById('dzLabel').textContent = 'Click or drag to upload your CV';
+    document.getElementById('dzHint').style.opacity = '';
+    const fill = document.getElementById('dzFill');
+    fill.style.transition = 'none';
+    fill.style.width = '0%';
+    document.getElementById('cvFile').value = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showPrefs() {
+    document.getElementById('viewUpload').classList.remove('active');
+    document.getElementById('viewPrefs').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function goBack() {
+    document.getElementById('viewPrefs').classList.remove('active');
+    document.getElementById('viewUpload').classList.add('active');
+    // Reset upload zone
+    const zone = document.getElementById('dropZone');
+    zone.classList.remove('uploading', 'done', 'drag-over');
+    document.getElementById('dzLabel').textContent = 'Click or drag to upload your CV';
+    document.getElementById('dzHint').style.opacity = '';
+    const fill = document.getElementById('dzFill');
+    fill.style.transition = 'none';
+    fill.style.width = '0%';
+    document.getElementById('cvFile').value = '';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ── Pills (single-select per group) ── */
+  function pick(el, group) {
+    el.closest('.pill-group').querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
+    el.classList.add('on');
+  }
+
+  /* ── Custom select ── */
+  function csToggle(id) {
+    const wrap = document.getElementById(id);
+    const isOpen = wrap.classList.contains('open');
+    csCloseAll();
+    if (!isOpen) {
+      wrap.classList.add('open');
+      wrap.querySelector('.cs-trigger').setAttribute('aria-expanded', 'true');
+    }
+  }
+  function csPick(id, el) {
+    const wrap = document.getElementById(id);
+    wrap.querySelectorAll('.cs-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    wrap.querySelector('.cs-value').textContent = el.textContent;
+    csCloseAll();
+  }
+  function csCloseAll() {
+    document.querySelectorAll('.cs-wrap.open').forEach(w => {
+      w.classList.remove('open');
+      w.querySelector('.cs-trigger').setAttribute('aria-expanded', 'false');
+    });
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.cs-wrap')) csCloseAll();
+  });
+
+  /* ── CV Modal ── */
+  function openCVModal() {
+    document.getElementById('cvModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeCVModal() {
+    document.getElementById('cvModal').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  function closeCVModalBackdrop(e) {
+    if (e.target === document.getElementById('cvModal')) closeCVModal();
+  }
+
+  /* ── Launch ── */
+  function launch() {
+    document.getElementById('viewPrefs').classList.remove('active');
+    document.getElementById('viewDashboard').classList.add('active');
+    window.scrollTo(0, 0);
+    const content = document.querySelector('.dash-content');
+    if (content) content.scrollTop = 0;
+    requestAnimationFrame(bindTopCard);
+  }
+
+  /* ── Dashboard sidebar ── */
+  function toggleSidebar() {
+    document.getElementById('dashSidebar').classList.toggle('collapsed');
+  }
+
+  function dashNav(el) {
+    document.querySelectorAll('.dash-nav-item').forEach(i => i.classList.remove('active'));
+    el.classList.add('active');
+    const label = el.querySelector('.dash-nav-label').textContent.trim();
+    document.getElementById('dashTopbarTitle').textContent = label;
+  }
+
+  /* ══════════════════════════════════
+     SWIPE CARDS
+  ══════════════════════════════════ */
+  let swipeDrag = null; // { card, startX, startY, dx }
+
+  function bindTopCard() {
+    const card = document.querySelector('#swipeStack .swipe-card-top');
+    if (!card || card.dataset.bound) return;
+    card.dataset.bound = '1';
+    card.addEventListener('pointerdown', onSwipeStart);
+    card.addEventListener('pointermove', onSwipeMove);
+    card.addEventListener('pointerup',   onSwipeEnd);
+    card.addEventListener('pointercancel', onSwipeEnd);
+  }
+
+  function onSwipeStart(e) {
+    e.preventDefault();
+    const card = e.currentTarget;
+    swipeDrag = { card, startX: e.clientX, startY: e.clientY, dx: 0 };
+    card.style.transition = 'none';
+    card.setPointerCapture(e.pointerId);
+  }
+
+  function onSwipeMove(e) {
+    if (!swipeDrag) return;
+    const { card, startX, startY } = swipeDrag;
+    const dx = e.clientX - startX;
+    const dy = (e.clientY - startY) * 0.15;
+    swipeDrag.dx = dx;
+
+    const rot = dx * 0.055;
+    card.style.transform = `translateX(${dx}px) translateY(${dy}px) rotate(${rot}deg)`;
+
+    // Border tint + labels
+    const ratio = Math.min(Math.abs(dx) / 90, 1);
+    const skipLbl  = card.querySelector('.scard-lbl-skip');
+    const applyLbl = card.querySelector('.scard-lbl-apply');
+    if (dx > 15) {
+      if (applyLbl) applyLbl.style.opacity = ratio;
+      if (skipLbl)  skipLbl.style.opacity  = 0;
+      card.style.borderColor = `rgba(17,189,189,${0.12 + ratio * 0.4})`;
+    } else if (dx < -15) {
+      if (skipLbl)  skipLbl.style.opacity  = ratio;
+      if (applyLbl) applyLbl.style.opacity = 0;
+      card.style.borderColor = `rgba(239,68,68,${0.12 + ratio * 0.4})`;
+    } else {
+      if (applyLbl) applyLbl.style.opacity = 0;
+      if (skipLbl)  skipLbl.style.opacity  = 0;
+      card.style.borderColor = '';
+    }
+  }
+
+  function onSwipeEnd(e) {
+    if (!swipeDrag) return;
+    const { card, dx } = swipeDrag;
+    swipeDrag = null;
+
+    card.style.borderColor = '';
+
+    if      (dx >  88) flyCard(card, 'right');
+    else if (dx < -88) flyCard(card, 'left');
+    else {
+      // Snap back with spring
+      card.style.transition = 'transform .4s cubic-bezier(.34,1.56,.64,1)';
+      card.style.transform  = '';
+      setTimeout(() => { card.style.transition = ''; }, 420);
+    }
+  }
+
+  function flyCard(card, dir) {
+    const tx  = dir === 'right' ? '130%' : '-130%';
+    const rot = dir === 'right' ? 22 : -22;
+    card.style.transition = 'transform .38s cubic-bezier(.4,0,.2,1), opacity .28s';
+    card.style.transform  = `translateX(${tx}) rotate(${rot}deg)`;
+    card.style.opacity    = '0';
+    card.style.pointerEvents = 'none';
+
+    if (dir === 'right') {
+      const role = card.querySelector('.scard-role')?.textContent.trim()    || '';
+      const co   = card.querySelector('.scard-company')?.textContent.trim() || '';
+      addToRecent(role, co);
+    }
+
+    setTimeout(() => {
+      card.remove();
+      refreshStack();
+      bindTopCard();
+    }, 400);
+  }
+
+  function swipeAction(dir) {
+    const card = document.querySelector('#swipeStack .swipe-card-top');
+    if (card) flyCard(card, dir);
+  }
+
+  function refreshStack() {
+    const cards = [...document.querySelectorAll('#swipeStack .swipe-card')];
+    const countEl   = document.getElementById('swipeCount');
+    const emptyEl   = document.getElementById('swipeEmpty');
+    const actionsEl = document.getElementById('swipeActions');
+
+    if (countEl) countEl.textContent = `${cards.length} role${cards.length !== 1 ? 's' : ''}`;
+
+    if (cards.length === 0) {
+      if (emptyEl)   emptyEl.style.display       = 'flex';
+      if (actionsEl) actionsEl.style.opacity      = '0';
+      if (actionsEl) actionsEl.style.pointerEvents = 'none';
+      return;
+    }
+
+    const stackClasses = ['swipe-card-top', 'swipe-card-back1', 'swipe-card-back2', 'swipe-card-hidden'];
+    cards.forEach((card, i) => {
+      card.classList.remove(...stackClasses);
+      card.classList.add(stackClasses[Math.min(i, 3)]);
+    });
+  }
+
+  function addToRecent(role, company) {
+    const list = document.getElementById('recentApplicationsList');
+    if (!list) return;
+    const initials = company.replace(/·.*/, '').trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    const row = document.createElement('div');
+    row.className = 'dash-recent-row';
+    row.style.animation = 'fadeUp .3s cubic-bezier(.22,.68,0,1.15)';
+    row.innerHTML = `
+      <div class="dash-recent-co">${escHtml(initials)}</div>
+      <div class="dash-recent-info">
+        <div class="dash-recent-role">${escHtml(role)}</div>
+        <div class="dash-recent-company">${escHtml(company)}</div>
+      </div>
+      <span class="dash-badge applied">Applied</span>`;
+    list.insertAdjacentElement('afterbegin', row);
+  }
+
+  function escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  // Keyboard: arrow keys to swipe
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('viewDashboard')?.classList.contains('active')) return;
+    if (document.getElementById('cvModal')?.classList.contains('open')) return;
+    if (e.key === 'ArrowLeft')  swipeAction('left');
+    if (e.key === 'ArrowRight') swipeAction('right');
+  });
+</script>
+
+<!-- CV Modal -->
+<div class="cv-modal-backdrop" id="cvModal" onclick="closeCVModalBackdrop(event)">
+  <div class="cv-modal">
+    <button class="cv-modal-close" onclick="closeCVModal()">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <!-- Header -->
+    <div class="cv-modal-header">
+      <div class="cv-modal-name">Lindsay Smith</div>
+      <div class="cv-modal-sub">Lead Product Designer &middot; Berlin, Germany &middot; 15 years experience</div>
+    </div>
+
+    <hr class="cv-modal-divider">
+
+    <div class="cv-modal-rows">
+
+      <!-- Skills -->
+      <div class="cv-modal-row">
+        <div class="cv-modal-key">Skills</div>
+        <div class="cv-modal-skills">Product Strategy &middot; Design Systems &middot; Figma &middot; Prototyping &middot; User Testing &middot; Service Design &middot; Stakeholder Management</div>
+      </div>
+
+      <!-- Experience -->
+      <div class="cv-modal-row">
+        <div class="cv-modal-key">Experience</div>
+        <div class="cv-modal-entries">
+          <div>
+            <div class="cv-modal-entry-title">Lead Product Designer</div>
+            <div class="cv-modal-entry-sub">Stepstone Group &middot; 2019 – Present</div>
+          </div>
+          <div>
+            <div class="cv-modal-entry-title">Senior UX Designer</div>
+            <div class="cv-modal-entry-sub">About You &middot; 2015 – 2019</div>
+          </div>
+          <div>
+            <div class="cv-modal-entry-title">UX Designer</div>
+            <div class="cv-modal-entry-sub">N26 &middot; 2013 – 2015</div>
+          </div>
+          <div>
+            <div class="cv-modal-entry-title">Product Designer</div>
+            <div class="cv-modal-entry-sub">Zalando &middot; 2011 – 2013</div>
+          </div>
+          <div>
+            <div class="cv-modal-entry-title">Junior Designer</div>
+            <div class="cv-modal-entry-sub">Freelance &middot; 2009 – 2011</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Education -->
+      <div class="cv-modal-row">
+        <div class="cv-modal-key">Education</div>
+        <div class="cv-modal-entries">
+          <div>
+            <div class="cv-modal-entry-title">MSc Business &amp; Technology</div>
+            <div class="cv-modal-entry-sub">Univ. of Applied Sciences, Berlin &middot; 2007 – 2009</div>
+          </div>
+          <div>
+            <div class="cv-modal-entry-title">BA Communication Design</div>
+            <div class="cv-modal-entry-sub">Hochschule für Gestaltung, Offenbach &middot; 2004 – 2007</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

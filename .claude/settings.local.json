@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Read(//usr/local/bin/**)",
+      "Read(//opt/homebrew/**)",
+      "Read(//Users/rachel.tobak/.nvm/versions/**)",
+      "Bash(brew list *)",
+      "Bash(node -e ' *)",
+      "Bash(export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\")",
+      "Read(//usr/bin/**)",
+      "Bash(find / -name \"node\" -type f -maxdepth 6)"
+    ]
+  }
+}
