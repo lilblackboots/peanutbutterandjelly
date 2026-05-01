@@ -9,7 +9,8 @@
       "Bash(node -e ' *)",
       "Bash(export PATH=\"/opt/homebrew/bin:/usr/local/bin:$PATH\")",
       "Read(//usr/bin/**)",
-      "Bash(find / -name \"node\" -type f -maxdepth 6)"
+      "Bash(find / -name \"node\" -type f -maxdepth 6)",
+      "Bash(sort -t: -k3)"
     ]
   }
 }
