@@ -482,6 +482,50 @@
     .asp-applied   { border-color: var(--g300); color: var(--g600); background: var(--g100); }
     .asp-review    { border-color: var(--g400); color: var(--g700); background: var(--g200); }
     .asp-submitted { border-color: var(--g300); color: var(--g600); background: var(--white); }
+    .asp-rejected  { border-color: var(--g200); color: var(--g400); background: var(--white); }
+
+    /* ── Dash Views (swappable panels) ── */
+    .dash-view { display: none; }
+    .dash-view.active { display: block; }
+
+    /* Applications view */
+    .apps-view-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+    .apps-search { position: relative; }
+    .apps-search-input {
+      width: 224px; padding: 7px 12px 7px 32px;
+      border: 1px solid var(--g200); border-radius: 8px;
+      font-size: 13px; color: var(--black); background: var(--white);
+      outline: none; transition: border-color .12s; font-family: inherit;
+    }
+    .apps-search-input::placeholder { color: var(--g400); }
+    .apps-search-input:focus { border-color: var(--g400); }
+    .apps-search-icon {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--g400); pointer-events: none; display: flex;
+    }
+    .apps-filter-bar { display: flex; align-items: center; gap: 7px; margin-bottom: 20px; flex-wrap: wrap; }
+    #dash-view-applications .filter-chip {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 5px 11px; border-radius: 20px; font-size: 12px; font-weight: 500;
+      border: 1px solid var(--g200); background: var(--white); color: var(--g600);
+      cursor: pointer; transition: all .12s; font-family: inherit; white-space: nowrap; margin: 0;
+    }
+    #dash-view-applications .filter-chip:hover { border-color: var(--g400); color: var(--black); }
+    #dash-view-applications .filter-chip.active { background: var(--black); color: var(--white); border-color: var(--black); }
+    .filter-select {
+      padding: 5px 28px 5px 11px; border: 1px solid var(--g200); border-radius: 20px;
+      font-size: 12px; font-weight: 500; color: var(--g600); background: var(--white);
+      cursor: pointer; font-family: inherit; outline: none; transition: border-color .12s, color .12s;
+      appearance: none; -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='none' stroke='%23b0b0b0' stroke-width='1.5' d='M1 1l4 4 4-4'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right 9px center;
+    }
+    .filter-select:hover, .filter-select:focus { border-color: var(--g400); color: var(--black); }
+    .apps-table th.sortable { cursor: pointer; user-select: none; }
+    .apps-table th.sortable:hover { color: var(--g600); }
+    .sort-icon { color: var(--g300); font-size: 9px; margin-left: 3px; vertical-align: middle; }
+    .apps-table th.sort-active .sort-icon { color: var(--g700); }
+    .no-results { text-align: center; color: var(--g400); font-size: 13px; padding: 40px 22px; }
 
     /* legacy compat */
     .stat-card { border: var(--border); border-radius: var(--radius); padding: 16px; }
@@ -1823,14 +1867,14 @@
 
     <!-- Sidebar -->
     <div class="dash-sidebar" id="dash-sidebar">
-      <button class="dash-nav-item active" title="Dashboard" onclick="setDashNav(this)">
+      <button class="dash-nav-item active" title="Dashboard" onclick="setDashNav(this,'dashboard')">
         <svg class="dash-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
           <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
         </svg>
         <span class="dash-nav-label">Dashboard</span>
       </button>
-      <button class="dash-nav-item" title="Applications" onclick="setDashNav(this)">
+      <button class="dash-nav-item" title="Applications" onclick="setDashNav(this,'applications')">
         <svg class="dash-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
           <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
@@ -1862,6 +1906,9 @@
 
     <!-- Main -->
     <div class="dash-main">
+
+      <!-- ── Dashboard view ── -->
+      <div id="dash-view-dashboard" class="dash-view active">
 
       <div style="margin-bottom: 28px;">
         <h1 style="font-size: 20px; font-weight: 700; letter-spacing: -.5px; margin-bottom: 4px;">Dashboard</h1>
@@ -1994,6 +2041,65 @@
           </tbody>
         </table>
       </div>
+
+      </div><!-- /dash-view-dashboard -->
+
+      <!-- ── Applications view ── -->
+      <div id="dash-view-applications" class="dash-view">
+
+        <div class="apps-view-header">
+          <div>
+            <h1 style="font-size:20px; font-weight:700; letter-spacing:-.5px; margin-bottom:4px;">Applications</h1>
+            <p style="font-size:13px; color:var(--g500);">142 total &middot; Updated just now</p>
+          </div>
+          <div class="apps-search">
+            <span class="apps-search-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <input type="text" class="apps-search-input" id="apps-search-input" placeholder="Search applications…" oninput="filterAppsTable()">
+          </div>
+        </div>
+
+        <div class="apps-filter-bar">
+          <span style="font-size:11px; color:var(--g400); font-weight:500; margin-right:2px; white-space:nowrap;">Filter:</span>
+          <button class="filter-chip active" onclick="setStatusFilter(this,'all')">All</button>
+          <button class="filter-chip" onclick="setStatusFilter(this,'Applied')">Applied</button>
+          <button class="filter-chip" onclick="setStatusFilter(this,'In Review')">In Review</button>
+          <button class="filter-chip" onclick="setStatusFilter(this,'Submitted')">Submitted</button>
+          <button class="filter-chip" onclick="setStatusFilter(this,'Rejected')">Rejected</button>
+          <div style="width:1px; height:18px; background:var(--g200); margin:0 2px; flex-shrink:0;"></div>
+          <select class="filter-select" id="filter-ats" onchange="filterAppsTable()">
+            <option value="">ATS: All</option>
+            <option value="Greenhouse">Greenhouse</option>
+            <option value="Lever">Lever</option>
+            <option value="Ashby">Ashby</option>
+            <option value="Workday">Workday</option>
+          </select>
+          <select class="filter-select" id="filter-match" onchange="filterAppsTable()">
+            <option value="">Match: All</option>
+            <option value="90">90%+</option>
+            <option value="80">80%+</option>
+            <option value="70">70%+</option>
+          </select>
+        </div>
+
+        <div class="recent-apps-wrap">
+          <table class="apps-table">
+            <thead>
+              <tr id="apps-table-head">
+                <th class="sortable" onclick="sortAppsTable('company',this)">Company <span class="sort-icon">↕</span></th>
+                <th class="sortable" onclick="sortAppsTable('role',this)">Role <span class="sort-icon">↕</span></th>
+                <th>ATS</th>
+                <th class="sortable" onclick="sortAppsTable('match',this)">Match <span class="sort-icon">↕</span></th>
+                <th>Status</th>
+                <th class="sortable" onclick="sortAppsTable('dateSort',this)">Date Applied <span class="sort-icon">↕</span></th>
+              </tr>
+            </thead>
+            <tbody id="apps-table-body"></tbody>
+          </table>
+        </div>
+
+      </div><!-- /dash-view-applications -->
 
     </div><!-- /dash-main -->
   </div><!-- /dash-layout -->
@@ -2169,9 +2275,82 @@
     }
   }
 
-  function setDashNav(el) {
+  function setDashNav(el, view) {
     document.querySelectorAll('#dash-sidebar .dash-nav-item').forEach(i => i.classList.remove('active'));
     el.classList.add('active');
+    document.querySelectorAll('#screen-tracking .dash-view').forEach(v => v.classList.remove('active'));
+    const target = document.getElementById('dash-view-' + (view || 'dashboard'));
+    if (target) {
+      target.classList.add('active');
+      if (view === 'applications') renderAppsTable();
+    }
+  }
+
+  /* ── Applications Data & Rendering ── */
+  const appsData = [
+    { company:'OpenAI', initial:'O', role:'Product Designer', ats:'Greenhouse', match:91, status:'Applied',   statusClass:'asp-applied',   date:'2h ago',   dateSort:0 },
+    { company:'Stripe', initial:'S', role:'UX Engineer',      ats:'Lever',      match:84, status:'In Review', statusClass:'asp-review',    date:'Yesterday', dateSort:1 },
+    { company:'Notion', initial:'N', role:'Product Designer', ats:'Ashby',      match:88, status:'Submitted', statusClass:'asp-submitted', date:'3d ago',    dateSort:3 },
+    { company:'Figma',  initial:'F', role:'Product Designer', ats:'Workday',    match:79, status:'Rejected',  statusClass:'asp-rejected',  date:'1w ago',    dateSort:7 },
+  ];
+  let appsSort = { key:'dateSort', dir:1 };
+  let appsStatusFilter = 'all';
+
+  function renderAppsTable() {
+    const search   = (document.getElementById('apps-search-input')?.value || '').toLowerCase();
+    const atsVal   = document.getElementById('filter-ats')?.value || '';
+    const matchMin = parseInt(document.getElementById('filter-match')?.value || '0');
+
+    let rows = appsData.filter(r => {
+      if (appsStatusFilter !== 'all' && r.status !== appsStatusFilter) return false;
+      if (atsVal   && r.ats !== atsVal) return false;
+      if (matchMin && r.match < matchMin) return false;
+      if (search   && !`${r.company} ${r.role} ${r.ats} ${r.status}`.toLowerCase().includes(search)) return false;
+      return true;
+    });
+
+    rows.sort((a, b) => {
+      const av = a[appsSort.key], bv = b[appsSort.key];
+      return appsSort.dir * (typeof av === 'string' ? av.localeCompare(bv) : av - bv);
+    });
+
+    const tbody = document.getElementById('apps-table-body');
+    if (!tbody) return;
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="no-results">No applications match your filters.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:28px;height:28px;border-radius:6px;background:var(--g200);border:1px solid var(--g300);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--g700);flex-shrink:0;">${r.initial}</div>
+            <span style="font-weight:500;">${r.company}</span>
+          </div>
+        </td>
+        <td style="color:var(--g700);">${r.role}</td>
+        <td style="color:var(--g500);font-size:12px;">${r.ats}</td>
+        <td style="font-size:13px;font-weight:600;">${r.match}%</td>
+        <td><span class="app-status-pill ${r.statusClass}">${r.status}</span></td>
+        <td style="color:var(--g500);font-size:12px;white-space:nowrap;">${r.date}</td>
+      </tr>`).join('');
+  }
+
+  function filterAppsTable() { renderAppsTable(); }
+
+  function setStatusFilter(el, value) {
+    appsStatusFilter = value;
+    document.querySelectorAll('#dash-view-applications .filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    renderAppsTable();
+  }
+
+  function sortAppsTable(key, th) {
+    appsSort.dir = (appsSort.key === key) ? appsSort.dir * -1 : 1;
+    appsSort.key = key;
+    document.querySelectorAll('#apps-table-head th').forEach(h => h.classList.remove('sort-active'));
+    th.classList.add('sort-active');
+    renderAppsTable();
   }
 </script>
 
