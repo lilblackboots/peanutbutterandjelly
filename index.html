@@ -636,7 +636,7 @@
     .tag.active { background: var(--black); color: var(--white); border-color: var(--black); }
 
     /* Pricing cards */
-    .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 22px; }
+    .pricing-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 22px; max-width: 340px; }
     .pricing-card {
       border: var(--border); border-radius: var(--radius); padding: 22px 18px;
       cursor: pointer; transition: border-color .1s; position: relative;
@@ -1477,35 +1477,8 @@
     <p style="font-size: 13px; color: var(--g600); line-height: 1.6; margin-bottom: 28px;">Start applying automatically today. Cancel any time.</p>
 
     <div class="pricing-grid">
-      <!-- Free -->
-      <div class="pricing-card" onclick="selectPlan(this)">
-        <div style="font-size: 13px; font-weight: 700; margin-bottom: 6px;">Free</div>
-        <div style="font-size: 28px; font-weight: 800; letter-spacing: -.5px; margin-bottom: 4px;">£0</div>
-        <div style="font-size: 11px; color: var(--g500); margin-bottom: 16px;">per month</div>
-        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--g600);">
-          <div style="display: flex; gap: 7px; align-items: center;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            Up to 5 applications / month
-          </div>
-          <div style="display: flex; gap: 7px; align-items: center;">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-            CV analysis
-          </div>
-          <div style="display: flex; gap: 7px; align-items: center; color: var(--g400);">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            Auto-apply
-          </div>
-          <div style="display: flex; gap: 7px; align-items: center; color: var(--g400);">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            AI cover letters
-          </div>
-        </div>
-      </div>
-
-      <!-- Pro -->
+      <!-- Plan -->
       <div class="pricing-card selected" onclick="selectPlan(this)">
-        <div class="pricing-badge">Most Popular</div>
-        <div style="font-size: 13px; font-weight: 700; margin-bottom: 6px;">Pro</div>
         <div style="font-size: 28px; font-weight: 800; letter-spacing: -.5px; margin-bottom: 4px;">£50</div>
         <div style="font-size: 11px; color: var(--g500); margin-bottom: 16px;">per month</div>
         <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--g600);">
