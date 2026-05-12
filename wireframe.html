@@ -583,6 +583,33 @@
     .rq-skip-confirm p { font-size: 12px; color: var(--g700); line-height: 1.5; margin-bottom: 10px; }
     .rq-all-clear { text-align: center; padding: 64px 24px; border: 1px solid var(--g200); border-radius: 12px; background: var(--white); }
 
+    /* ── Status / Job Pipeline view ── */
+    .pipeline-stats-bar { display: flex; align-items: center; padding: 13px 20px; border: 1px solid var(--g200); border-radius: 10px; background: var(--white); margin-bottom: 24px; font-size: 13px; flex-wrap: wrap; gap: 4px; }
+    .pipeline-stat { display: flex; align-items: center; gap: 5px; color: var(--g600); }
+    .pipeline-stat strong { color: var(--black); font-weight: 700; }
+    .pipeline-stat-sep { color: var(--g300); margin: 0 12px; font-weight: 300; }
+    .pipeline-list { border: 1px solid var(--g200); border-radius: 12px; overflow: hidden; }
+    .pipeline-card { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 18px 22px; border-bottom: 1px solid var(--g200); background: var(--white); transition: background .1s; cursor: default; }
+    .pipeline-card:last-child { border-bottom: none; }
+    .pipeline-card:hover { background: var(--g100); }
+    .pipeline-card-left { display: flex; align-items: flex-start; gap: 14px; flex: 1; min-width: 0; }
+    .pipeline-logo { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--g200); background: var(--g100); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--g700); flex-shrink: 0; margin-top: 1px; }
+    .pipeline-job-title { font-size: 14px; font-weight: 700; color: var(--black); margin-bottom: 2px; letter-spacing: -.2px; line-height: 1.3; }
+    .pipeline-company { font-size: 12px; color: var(--g500); margin-bottom: 9px; }
+    .pipeline-tags { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .pipeline-tag-text { font-size: 11px; color: var(--g400); }
+    .pipeline-tag-sep { color: var(--g300); font-size: 11px; }
+    .pipeline-tag-chip { font-size: 10px; font-weight: 600; color: var(--g600); border: 1px solid var(--g300); border-radius: 4px; padding: 1px 7px; }
+    .pipeline-card-right { text-align: right; flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 7px; padding-top: 2px; min-width: 120px; }
+    .pipeline-match { font-size: 14px; font-weight: 800; color: var(--black); letter-spacing: -.5px; }
+    .pipeline-match-label { font-size: 11px; font-weight: 500; color: var(--g400); margin-left: 2px; letter-spacing: 0; }
+    .pipeline-status-applying { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--black); font-weight: 500; }
+    .applying-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--black); flex-shrink: 0; animation: pulse-dot 1.6s ease-in-out infinite; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: .2; } }
+    .pipeline-status-queued { display: inline-block; font-size: 11px; font-weight: 500; color: var(--g500); border: 1px solid var(--g300); border-radius: 6px; padding: 3px 10px; }
+    .pipeline-status-submitted { display: inline-block; font-size: 11px; font-weight: 500; color: var(--g600); background: var(--g100); border: 1px solid var(--g200); border-radius: 6px; padding: 3px 10px; }
+    .pipeline-posted { font-size: 11px; color: var(--g400); }
+
     /* legacy compat */
     .stat-card { border: var(--border); border-radius: var(--radius); padding: 16px; }
     .widget { border: var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; }
@@ -1912,7 +1939,7 @@
         <span class="dash-nav-label">Review Queue</span>
         <span class="dash-nav-badge">24</span>
       </button>
-      <button class="dash-nav-item" title="Status" onclick="setDashNav(this)">
+      <button class="dash-nav-item" title="Status" onclick="setDashNav(this,'status')">
         <svg class="dash-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
         </svg>
@@ -2140,6 +2167,143 @@
         <div id="rq-list"></div>
 
       </div><!-- /dash-view-review -->
+
+      <!-- ── Status / Job Pipeline view ── -->
+      <div id="dash-view-status" class="dash-view">
+
+        <div style="margin-bottom:24px;">
+          <h1 style="font-size:20px;font-weight:700;letter-spacing:-.5px;margin-bottom:4px;">Job Pipeline</h1>
+          <p style="font-size:13px;color:var(--g500);">ApplyBot is actively working on these matches</p>
+        </div>
+
+        <div class="pipeline-stats-bar">
+          <span class="pipeline-stat"><strong>47</strong> jobs in pipeline</span>
+          <span class="pipeline-stat-sep">·</span>
+          <span class="pipeline-stat"><strong>2</strong> submitted today</span>
+          <span class="pipeline-stat-sep">·</span>
+          <span class="pipeline-stat"><strong>3</strong> in review</span>
+        </div>
+
+        <div class="pipeline-list">
+
+          <!-- Cloudflare — Applying -->
+          <div class="pipeline-card">
+            <div class="pipeline-card-left">
+              <div class="pipeline-logo">C</div>
+              <div>
+                <div class="pipeline-job-title">Senior Product Manager — Infrastructure</div>
+                <div class="pipeline-company">Cloudflare · Remote</div>
+                <div class="pipeline-tags">
+                  <span class="pipeline-tag-text">£155K–£190K</span>
+                  <span class="pipeline-tag-sep">·</span>
+                  <span class="pipeline-tag-text">Senior</span>
+                  <span class="pipeline-tag-sep">·</span>
+                  <span class="pipeline-tag-chip">Remote</span>
+                </div>
+              </div>
+            </div>
+            <div class="pipeline-card-right">
+              <div><span class="pipeline-match">96%</span><span class="pipeline-match-label">match</span></div>
+              <div class="pipeline-status-applying"><span class="applying-dot"></span>Applying…</div>
+              <div class="pipeline-posted">Posted 9h ago</div>
+            </div>
+          </div>
+
+          <!-- Vercel — Applying -->
+          <div class="pipeline-card">
+            <div class="pipeline-card-left">
+              <div class="pipeline-logo">V</div>
+              <div>
+                <div class="pipeline-job-title">Product Manager, Core Platform</div>
+                <div class="pipeline-company">Vercel · Remote</div>
+                <div class="pipeline-tags">
+                  <span class="pipeline-tag-text">£145K–£175K</span>
+                  <span class="pipeline-tag-sep">·</span>
+                  <span class="pipeline-tag-text">Senior</span>
+                  <span class="pipeline-tag-sep">·</span>
+                  <span class="pipeline-tag-chip">Remote</span>
+                </div>
+              </div>
+            </div>
+            <div class="pipeline-card-right">
+              <div><span class="pipeline-match">93%</span><span class="pipeline-match-label">match</span></div>
+              <div class="pipeline-status-applying"><span class="applying-dot"></span>Applying…</div>
+              <div class="pipeline-posted">Posted 8h ago</div>
+            </div>
+          </div>
+
+          <!-- Supabase — Queued -->
+          <div class="pipeline-card">
+            <div class="pipeline-card-left">
+              <div class="pipeline-logo">S</div>
+              <div>
+                <div class="pipeline-job-title">Senior PM — Developer Experience</div>
+                <div class="pipeline-company">Supabase · Remote</div>
+                <div class="pipeline-tags">
+                  <span class="pipeline-tag-text">£140K–£170K</span>
+                  <span class="pipeline-tag-sep">·</span>
+                  <span class="pipeline-tag-text">Senior</span>
+                  <span class="pipeline-tag-sep">·</span>
+                  <span class="pipeline-tag-chip">Remote</span>
+                </div>
+              </div>
+            </div>
+            <div class="pipeline-card-right">
+              <div><span class="pipeline-match">91%</span><span class="pipeline-match-label">match</span></div>
+              <div class="pipeline-status-queued">Queued</div>
+              <div class="pipeline-posted">Posted 1d ago</div>
+            </div>
+          </div>
+
+          <!-- Stripe — Queued -->
+          <div class="pipeline-card">
+            <div class="pipeline-card-left">
+              <div class="pipeline-logo">S</div>
+              <div>
+                <div class="pipeline-job-title">Engineering Manager, Payments</div>
+                <div class="pipeline-company">Stripe · Hybrid</div>
+                <div class="pipeline-tags">
+                  <span class="pipeline-tag-text">£160K–£200K</span>
+                  <span class="pipeline-tag-sep">·</span>
+                  <span class="pipeline-tag-text">Senior</span>
+                  <span class="pipeline-tag-sep">·</span>
+                  <span class="pipeline-tag-chip">Hybrid</span>
+                </div>
+              </div>
+            </div>
+            <div class="pipeline-card-right">
+              <div><span class="pipeline-match">88%</span><span class="pipeline-match-label">match</span></div>
+              <div class="pipeline-status-queued">Queued</div>
+              <div class="pipeline-posted">Posted 2d ago</div>
+            </div>
+          </div>
+
+          <!-- Linear — Submitted -->
+          <div class="pipeline-card">
+            <div class="pipeline-card-left">
+              <div class="pipeline-logo">L</div>
+              <div>
+                <div class="pipeline-job-title">Product Designer</div>
+                <div class="pipeline-company">Linear · Remote</div>
+                <div class="pipeline-tags">
+                  <span class="pipeline-tag-text">£90K–£120K</span>
+                  <span class="pipeline-tag-sep">·</span>
+                  <span class="pipeline-tag-text">Mid-level</span>
+                  <span class="pipeline-tag-sep">·</span>
+                  <span class="pipeline-tag-chip">Remote</span>
+                </div>
+              </div>
+            </div>
+            <div class="pipeline-card-right">
+              <div><span class="pipeline-match">84%</span><span class="pipeline-match-label">match</span></div>
+              <div class="pipeline-status-submitted">Submitted</div>
+              <div class="pipeline-posted">Posted 3d ago</div>
+            </div>
+          </div>
+
+        </div>
+
+      </div><!-- /dash-view-status -->
 
     </div><!-- /dash-main -->
   </div><!-- /dash-layout -->
