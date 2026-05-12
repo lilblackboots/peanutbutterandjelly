@@ -482,7 +482,29 @@
     .asp-applied   { border-color: var(--g300); color: var(--g600); background: var(--g100); }
     .asp-review    { border-color: var(--g400); color: var(--g700); background: var(--g200); }
     .asp-submitted { border-color: var(--g300); color: var(--g600); background: var(--white); }
-    .asp-rejected  { border-color: var(--g200); color: var(--g400); background: var(--white); }
+    .asp-rejected       { border-color: var(--g200); color: var(--g400); background: var(--white); }
+    .asp-review-needed  { border-color: var(--g500); color: var(--g800); background: var(--g200); font-weight: 600; }
+    .asp-not-progressed { border-color: var(--g200); color: var(--g400); background: var(--white); }
+
+    /* ── Applications split layout ── */
+    .apps-split { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; }
+    .apps-split.has-detail { grid-template-columns: 1fr 320px; }
+    .apps-table tbody tr { cursor: pointer; }
+    .apps-table tbody tr.row-selected td { background: var(--g100); }
+    .apps-detail-panel { display: none; border: 1px solid var(--g200); border-radius: 12px; overflow: hidden; background: var(--white); position: sticky; top: 20px; }
+    .apps-split.has-detail .apps-detail-panel { display: block; }
+    .detail-panel-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--g200); }
+    .detail-close { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--g200); background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--g500); transition: all .12s; flex-shrink: 0; }
+    .detail-close:hover { background: var(--g100); color: var(--black); border-color: var(--g400); }
+    .detail-panel-body { padding: 18px; }
+    .detail-field { display: flex; align-items: center; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--g100); font-size: 12px; }
+    .detail-field:last-of-type { border-bottom: none; }
+    .detail-field-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--g400); }
+    .detail-divider { height: 1px; background: var(--g200); margin: 14px 0; }
+    .detail-cta-banner { background: var(--g100); border: 1px solid var(--g200); border-radius: 8px; padding: 14px 16px; }
+    .detail-timeline-item { display: flex; align-items: flex-start; gap: 9px; padding: 6px 0; font-size: 12px; color: var(--g600); }
+    .detail-timeline-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--black); flex-shrink: 0; margin-top: 4px; }
+    .detail-readonly-note { font-size: 12px; color: var(--g500); line-height: 1.65; }
 
     /* ── Dash Views (swappable panels) ── */
     .dash-view { display: none; }
@@ -2063,12 +2085,10 @@
         </div>
 
         <div class="apps-filter-bar">
-          <span style="font-size:11px; color:var(--g400); font-weight:500; margin-right:2px; white-space:nowrap;">Filter:</span>
           <button class="filter-chip active" onclick="setStatusFilter(this,'all')">All</button>
-          <button class="filter-chip" onclick="setStatusFilter(this,'Applied')">Applied</button>
-          <button class="filter-chip" onclick="setStatusFilter(this,'In Review')">In Review</button>
           <button class="filter-chip" onclick="setStatusFilter(this,'Submitted')">Submitted</button>
-          <button class="filter-chip" onclick="setStatusFilter(this,'Rejected')">Rejected</button>
+          <button class="filter-chip" onclick="setStatusFilter(this,'Review needed')">Review needed</button>
+          <button class="filter-chip" onclick="setStatusFilter(this,'Not progressed')">Not progressed</button>
           <div style="width:1px; height:18px; background:var(--g200); margin:0 2px; flex-shrink:0;"></div>
           <select class="filter-select" id="filter-ats" onchange="filterAppsTable()">
             <option value="">ATS: All</option>
@@ -2085,20 +2105,23 @@
           </select>
         </div>
 
-        <div class="recent-apps-wrap">
-          <table class="apps-table">
-            <thead>
-              <tr id="apps-table-head">
-                <th class="sortable" onclick="sortAppsTable('company',this)">Company <span class="sort-icon">↕</span></th>
-                <th class="sortable" onclick="sortAppsTable('role',this)">Role <span class="sort-icon">↕</span></th>
-                <th>ATS</th>
-                <th class="sortable" onclick="sortAppsTable('match',this)">Match <span class="sort-icon">↕</span></th>
-                <th>Status</th>
-                <th class="sortable" onclick="sortAppsTable('dateSort',this)">Date Applied <span class="sort-icon">↕</span></th>
-              </tr>
-            </thead>
-            <tbody id="apps-table-body"></tbody>
-          </table>
+        <div id="apps-split" class="apps-split">
+          <div class="recent-apps-wrap">
+            <table class="apps-table">
+              <thead>
+                <tr id="apps-table-head">
+                  <th class="sortable" onclick="sortAppsTable('company',this)">Company <span class="sort-icon">↕</span></th>
+                  <th class="sortable" onclick="sortAppsTable('role',this)">Role <span class="sort-icon">↕</span></th>
+                  <th>ATS</th>
+                  <th class="sortable" onclick="sortAppsTable('match',this)">Match <span class="sort-icon">↕</span></th>
+                  <th>Status</th>
+                  <th class="sortable" onclick="sortAppsTable('dateSort',this)">Date Applied <span class="sort-icon">↕</span></th>
+                </tr>
+              </thead>
+              <tbody id="apps-table-body"></tbody>
+            </table>
+          </div>
+          <div id="apps-detail-panel" class="apps-detail-panel"></div>
         </div>
 
       </div><!-- /dash-view-applications -->
@@ -2470,13 +2493,14 @@
 
   /* ── Applications Data & Rendering ── */
   const appsData = [
-    { company:'OpenAI', initial:'O', role:'Product Designer', ats:'Greenhouse', match:91, status:'Applied',   statusClass:'asp-applied',   date:'2h ago',   dateSort:0 },
-    { company:'Stripe', initial:'S', role:'UX Engineer',      ats:'Lever',      match:84, status:'In Review', statusClass:'asp-review',    date:'Yesterday', dateSort:1 },
-    { company:'Notion', initial:'N', role:'Product Designer', ats:'Ashby',      match:88, status:'Submitted', statusClass:'asp-submitted', date:'3d ago',    dateSort:3 },
-    { company:'Figma',  initial:'F', role:'Product Designer', ats:'Workday',    match:79, status:'Rejected',  statusClass:'asp-rejected',  date:'1w ago',    dateSort:7 },
+    { company:'OpenAI', initial:'O', role:'Product Designer', ats:'Greenhouse', match:91, status:'Submitted',     statusClass:'asp-submitted',     date:'2h ago',    dateSort:0 },
+    { company:'Stripe', initial:'S', role:'UX Engineer',      ats:'Lever',      match:84, status:'Review needed', statusClass:'asp-review-needed',  date:'Yesterday', dateSort:1 },
+    { company:'Notion', initial:'N', role:'Product Designer', ats:'Ashby',      match:88, status:'Submitted',     statusClass:'asp-submitted',     date:'3d ago',    dateSort:3 },
+    { company:'Figma',  initial:'F', role:'Product Designer', ats:'Workday',    match:79, status:'Not progressed',statusClass:'asp-not-progressed', date:'1w ago',    dateSort:7 },
   ];
-  let appsSort = { key:'dateSort', dir:1 };
+  let appsSort         = { key:'dateSort', dir:1 };
   let appsStatusFilter = 'all';
+  let appsSelectedId   = null;
 
   function renderAppsTable() {
     const search   = (document.getElementById('apps-search-input')?.value || '').toLowerCase();
@@ -2503,7 +2527,7 @@
       return;
     }
     tbody.innerHTML = rows.map(r => `
-      <tr>
+      <tr data-company="${r.company}" class="${appsSelectedId === r.company ? 'row-selected' : ''}" onclick="selectAppRow('${r.company}')">
         <td>
           <div style="display:flex;align-items:center;gap:10px;">
             <div style="width:28px;height:28px;border-radius:6px;background:var(--g200);border:1px solid var(--g300);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--g700);flex-shrink:0;">${r.initial}</div>
@@ -2518,10 +2542,85 @@
       </tr>`).join('');
   }
 
+  function selectAppRow(company) {
+    appsSelectedId = (appsSelectedId === company) ? null : company;
+    const split = document.getElementById('apps-split');
+    if (split) split.classList.toggle('has-detail', !!appsSelectedId);
+    renderAppsTable();
+    renderAppDetail();
+  }
+
+  function closeAppDetail() {
+    appsSelectedId = null;
+    const split = document.getElementById('apps-split');
+    if (split) split.classList.remove('has-detail');
+    renderAppsTable();
+  }
+
+  function renderAppDetail() {
+    const panel = document.getElementById('apps-detail-panel');
+    if (!panel) return;
+    if (!appsSelectedId) { panel.innerHTML = ''; return; }
+    const item = appsData.find(r => r.company === appsSelectedId);
+    if (!item) return;
+
+    let sectionContent = '';
+    if (item.status === 'Review needed') {
+      sectionContent = `
+        <div class="detail-cta-banner">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--g500);margin-bottom:6px;">Action required</div>
+          <p style="font-size:12px;color:var(--g600);line-height:1.6;margin-bottom:12px;">ApplyBot needs your input before this application can proceed. Head to the Review Queue to resolve the issue.</p>
+          <button class="btn btn-primary btn-sm" onclick="goToReviewQueue()" style="width:100%;justify-content:center;">Resolve in Review Queue →</button>
+        </div>`;
+    } else if (item.status === 'Not progressed') {
+      sectionContent = `
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--g400);margin-bottom:8px;">Details</div>
+        <div class="detail-readonly-note">ApplyBot was unable to complete this application. The match score fell below your configured threshold or the application was blocked at the ATS level.</div>`;
+    } else {
+      sectionContent = `
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--g400);margin-bottom:10px;">Timeline</div>
+        <div>
+          <div class="detail-timeline-item"><div class="detail-timeline-dot"></div><span>CV matched and parsed</span></div>
+          <div class="detail-timeline-item"><div class="detail-timeline-dot"></div><span>Application form completed</span></div>
+          <div class="detail-timeline-item"><div class="detail-timeline-dot"></div><span>Submitted to ${item.ats}</span></div>
+        </div>`;
+    }
+
+    panel.innerHTML = `
+      <div class="detail-panel-head">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="width:30px;height:30px;border-radius:6px;background:var(--g200);border:1px solid var(--g300);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--g700);flex-shrink:0;">${item.initial}</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;line-height:1.2;">${item.company}</div>
+            <div style="font-size:11px;color:var(--g500);">${item.role}</div>
+          </div>
+        </div>
+        <button class="detail-close" onclick="closeAppDetail()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="detail-panel-body">
+        <div class="detail-field"><span class="detail-field-label">Applied</span><span style="color:var(--g600);">${item.date}</span></div>
+        <div class="detail-field"><span class="detail-field-label">ATS</span><span style="color:var(--g600);">${item.ats}</span></div>
+        <div class="detail-field"><span class="detail-field-label">Match</span><span style="font-weight:700;">${item.match}%</span></div>
+        <div class="detail-field"><span class="detail-field-label">Status</span><span class="app-status-pill ${item.statusClass}" style="font-size:10px;">${item.status}</span></div>
+        <div class="detail-divider"></div>
+        ${sectionContent}
+      </div>`;
+  }
+
+  function goToReviewQueue() {
+    const btn = document.querySelector('#dash-sidebar [title="Review Queue"]');
+    if (btn) setDashNav(btn, 'review');
+  }
+
   function filterAppsTable() { renderAppsTable(); }
 
   function setStatusFilter(el, value) {
     appsStatusFilter = value;
+    appsSelectedId = null;
+    const split = document.getElementById('apps-split');
+    if (split) split.classList.remove('has-detail');
     document.querySelectorAll('#dash-view-applications .filter-chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     renderAppsTable();
