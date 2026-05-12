@@ -527,6 +527,40 @@
     .apps-table th.sort-active .sort-icon { color: var(--g700); }
     .no-results { text-align: center; color: var(--g400); font-size: 13px; padding: 40px 22px; }
 
+    /* ── Review Queue view ── */
+    .rq-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+    .rq-count-badge { background: var(--black); color: var(--white); font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 10px; flex-shrink: 0; margin-top: 4px; }
+    .rq-list { border: 1px solid var(--g200); border-radius: 12px; overflow: hidden; }
+    .rq-item { border-bottom: 1px solid var(--g200); background: var(--white); }
+    .rq-item:last-child { border-bottom: none; }
+    .rq-item-header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; cursor: pointer; transition: background .1s; user-select: none; }
+    .rq-item-header:hover { background: var(--g100); }
+    .rq-item.expanded > .rq-item-header { background: var(--g100); border-bottom: 1px solid var(--g200); }
+    .rq-item-logo { width: 28px; height: 28px; border-radius: 6px; background: var(--g200); border: 1px solid var(--g300); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: var(--g700); flex-shrink: 0; }
+    .rq-item-info { flex: 1; min-width: 0; }
+    .rq-item-company { font-size: 13px; font-weight: 600; color: var(--black); }
+    .rq-item-role { font-size: 12px; color: var(--g500); margin-top: 1px; }
+    .rq-ats-tag { font-size: 11px; color: var(--g400); white-space: nowrap; flex-shrink: 0; }
+    .rq-reason-tag { font-size: 11px; font-weight: 500; color: var(--g600); border: 1px solid var(--g300); border-radius: 4px; padding: 2px 8px; white-space: nowrap; flex-shrink: 0; }
+    .rq-chevron { flex-shrink: 0; color: var(--g400); transition: transform .18s; }
+    .rq-item.expanded .rq-chevron { transform: rotate(180deg); }
+    .rq-item-body { padding: 20px; display: none; }
+    .rq-item.expanded .rq-item-body { display: block; }
+    .rq-action-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--g400); margin-bottom: 10px; }
+    .rq-desc { font-size: 13px; color: var(--g600); line-height: 1.6; margin-bottom: 14px; }
+    .rq-question { font-size: 13px; font-weight: 600; color: var(--g800); margin-bottom: 10px; line-height: 1.45; }
+    .rq-textarea { width: 100%; border: 1px solid var(--g200); border-radius: 8px; padding: 10px 13px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 72px; outline: none; color: var(--black); transition: border-color .12s; }
+    .rq-textarea:focus { border-color: var(--g400); }
+    .rq-mapping-table { border: 1px solid var(--g200); border-radius: 8px; overflow: hidden; font-size: 12px; margin-bottom: 0; }
+    .rq-mapping-head { display: grid; grid-template-columns: 1fr 1fr; background: var(--g100); padding: 8px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--g400); border-bottom: 1px solid var(--g200); }
+    .rq-mapping-row { display: grid; grid-template-columns: 1fr 1fr; padding: 10px 12px; align-items: center; gap: 8px; }
+    .rq-mapping-input { border: 1px solid var(--g300); border-radius: 6px; padding: 5px 9px; font-size: 12px; font-family: inherit; outline: none; width: 100%; transition: border-color .12s; }
+    .rq-mapping-input:focus { border-color: var(--g400); }
+    .rq-actions { display: flex; align-items: center; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+    .rq-skip-confirm { background: var(--g100); border: 1px solid var(--g200); border-radius: 8px; padding: 14px 16px; margin-top: 12px; }
+    .rq-skip-confirm p { font-size: 12px; color: var(--g700); line-height: 1.5; margin-bottom: 10px; }
+    .rq-all-clear { text-align: center; padding: 64px 24px; border: 1px solid var(--g200); border-radius: 12px; background: var(--white); }
+
     /* legacy compat */
     .stat-card { border: var(--border); border-radius: var(--radius); padding: 16px; }
     .widget { border: var(--border); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; }
@@ -1849,7 +1883,7 @@
         </svg>
         <span class="dash-nav-label">Applications</span>
       </button>
-      <button class="dash-nav-item" title="Review Queue" onclick="setDashNav(this)">
+      <button class="dash-nav-item" title="Review Queue" onclick="setDashNav(this,'review')">
         <svg class="dash-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
         </svg>
@@ -2069,6 +2103,21 @@
 
       </div><!-- /dash-view-applications -->
 
+      <!-- ── Review Queue view ── -->
+      <div id="dash-view-review" class="dash-view">
+
+        <div class="rq-header">
+          <div>
+            <h1 style="font-size:20px; font-weight:700; letter-spacing:-.5px; margin-bottom:4px;">Review Queue</h1>
+            <p style="font-size:13px; color:var(--g500);">Items that need your attention before ApplyBot can proceed</p>
+          </div>
+          <span class="rq-count-badge" id="rq-count">4</span>
+        </div>
+
+        <div id="rq-list"></div>
+
+      </div><!-- /dash-view-review -->
+
     </div><!-- /dash-main -->
   </div><!-- /dash-layout -->
 
@@ -2251,7 +2300,172 @@
     if (target) {
       target.classList.add('active');
       if (view === 'applications') renderAppsTable();
+      if (view === 'review') renderReviewQueue();
     }
+  }
+
+  /* ── Review Queue ── */
+  const rqData = [
+    {
+      id: 0, company: 'Figma', initial: 'F', role: 'UX Designer', ats: 'Ashby',
+      typeLabel: 'Unknown screening Q', bodyType: 'screening',
+      desc: 'ApplyBot encountered an unfamiliar screening question and needs your answer before it can continue.',
+      question: '"Do you have experience with design systems at scale?"',
+      primaryLabel: 'Submit answer'
+    },
+    {
+      id: 1, company: 'Airbnb', initial: 'A', role: 'Product Designer', ats: 'Greenhouse',
+      typeLabel: 'CAPTCHA blocked', bodyType: 'captcha',
+      desc: 'ApplyBot was blocked by a CAPTCHA on the Greenhouse application page. Complete the application manually using the link below, then mark as resolved.',
+      primaryLabel: 'Open application →'
+    },
+    {
+      id: 2, company: 'Meta', initial: 'M', role: 'Frontend Engineer', ats: 'Workday',
+      typeLabel: 'Email verification', bodyType: 'email',
+      desc: 'A verification email was sent to your registered address. Complete the verification step and return here to continue.',
+      primaryLabel: 'Mark as resolved'
+    },
+    {
+      id: 3, company: 'Linear', initial: 'L', role: 'Product Designer', ats: 'Lever',
+      typeLabel: 'Field mapping error', bodyType: 'mapping',
+      desc: 'The "Years of experience" field couldn\'t be mapped from your CV. Review and correct the value below.',
+      primaryLabel: 'Save and continue'
+    },
+  ];
+
+  let rqResolved    = new Set();
+  let rqExpandedId  = 0;
+  let rqSkipConfirmId = null;
+
+  function renderReviewQueue() {
+    const list  = document.getElementById('rq-list');
+    const badge = document.getElementById('rq-count');
+    if (!list) return;
+
+    const remaining = rqData.filter(item => !rqResolved.has(item.id));
+    if (badge) badge.textContent = remaining.length;
+
+    if (!remaining.length) {
+      list.innerHTML = `
+        <div class="rq-all-clear">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--g300);margin-bottom:16px;"><circle cx="12" cy="12" r="10"/><polyline points="20 6 9 17 4 12"/></svg>
+          <div style="font-size:15px;font-weight:700;margin-bottom:6px;">Queue cleared</div>
+          <div style="font-size:13px;color:var(--g500);max-width:300px;margin:0 auto;line-height:1.6;">All items have been resolved. ApplyBot is continuing to apply automatically.</div>
+        </div>`;
+      return;
+    }
+
+    if (rqResolved.has(rqExpandedId)) {
+      rqExpandedId = remaining[0].id;
+      rqSkipConfirmId = null;
+    }
+
+    list.innerHTML = `<div class="rq-list">${remaining.map(item => renderRqItem(item)).join('')}</div>`;
+  }
+
+  function renderRqItem(item) {
+    const expanded  = item.id === rqExpandedId;
+    const showSkip  = item.id === rqSkipConfirmId;
+
+    let content = '';
+    if (item.bodyType === 'screening') {
+      content = `
+        <div class="rq-desc">${item.desc}</div>
+        <div class="rq-question">${item.question}</div>
+        <textarea class="rq-textarea" placeholder="Type your answer…"></textarea>`;
+    } else if (item.bodyType === 'captcha') {
+      content = `<div class="rq-desc">${item.desc}</div>
+        <div style="border:1px dashed var(--g300);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--g500);display:flex;align-items:center;gap:10px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          greenhouse.io/apply/figma-ux-designer-123 <span style="margin-left:auto;color:var(--g300);">Link placeholder</span>
+        </div>`;
+    } else if (item.bodyType === 'email') {
+      content = `<div class="rq-desc">${item.desc}</div>
+        <div style="background:var(--g100);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--g600);display:flex;align-items:center;gap:9px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2 7 12 13 22 7"/></svg>
+          Verification email sent to <strong style="color:var(--black);">alex@email.com</strong>
+        </div>`;
+    } else if (item.bodyType === 'mapping') {
+      content = `<div class="rq-desc">${item.desc}</div>
+        <div class="rq-mapping-table">
+          <div class="rq-mapping-head"><span>Field</span><span>Value</span></div>
+          <div class="rq-mapping-row">
+            <span style="color:var(--g600);">Years of experience</span>
+            <input type="text" class="rq-mapping-input" placeholder="e.g. 4">
+          </div>
+        </div>`;
+    }
+
+    const skipConfirmHTML = showSkip ? `
+      <div class="rq-skip-confirm">
+        <p>Skip <strong>${item.company} — ${item.role}</strong>? This job will be removed from the queue and won't be applied to.</p>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary btn-sm" onclick="confirmRqSkip(${item.id})">Confirm skip</button>
+          <button class="btn btn-secondary btn-sm" onclick="cancelRqSkip()">Cancel</button>
+        </div>
+      </div>` : '';
+
+    const actionsHTML = showSkip ? '' : `
+      <div class="rq-actions">
+        <button class="btn btn-primary btn-sm" onclick="resolveRqItem(${item.id})">${item.primaryLabel}</button>
+        <button class="btn btn-ghost btn-sm" onclick="skipRqItem(${item.id})">Skip this job</button>
+        <button class="btn btn-ghost btn-sm" style="margin-left:auto;" onclick="cancelRqItem(${item.id})">Cancel</button>
+      </div>`;
+
+    return `
+      <div class="rq-item ${expanded ? 'expanded' : ''}" id="rq-item-${item.id}">
+        <div class="rq-item-header" onclick="toggleRqItem(${item.id})">
+          <div class="rq-item-logo">${item.initial}</div>
+          <div class="rq-item-info">
+            <div class="rq-item-company">${item.company}</div>
+            <div class="rq-item-role">${item.role}</div>
+          </div>
+          <span class="rq-ats-tag">${item.ats}</span>
+          <span class="rq-reason-tag">${item.typeLabel}</span>
+          <svg class="rq-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        ${expanded ? `
+        <div class="rq-item-body">
+          <div class="rq-action-label">Action required</div>
+          ${content}
+          ${actionsHTML}
+          ${skipConfirmHTML}
+        </div>` : ''}
+      </div>`;
+  }
+
+  function toggleRqItem(id) {
+    rqExpandedId = (rqExpandedId === id) ? null : id;
+    rqSkipConfirmId = null;
+    renderReviewQueue();
+  }
+
+  function resolveRqItem(id) {
+    rqResolved.add(id);
+    rqSkipConfirmId = null;
+    renderReviewQueue();
+  }
+
+  function skipRqItem(id) {
+    rqSkipConfirmId = id;
+    renderReviewQueue();
+  }
+
+  function confirmRqSkip(id) {
+    rqResolved.add(id);
+    rqSkipConfirmId = null;
+    renderReviewQueue();
+  }
+
+  function cancelRqSkip() {
+    rqSkipConfirmId = null;
+    renderReviewQueue();
+  }
+
+  function cancelRqItem(id) {
+    if (rqExpandedId === id) rqExpandedId = null;
+    rqSkipConfirmId = null;
+    renderReviewQueue();
   }
 
   /* ── Applications Data & Rendering ── */
